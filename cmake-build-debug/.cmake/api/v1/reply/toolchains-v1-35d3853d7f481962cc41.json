@@ -1,0 +1,144 @@
+{
+	"kind" : "toolchains",
+	"toolchains" : 
+	[
+		{
+			"compiler" : 
+			{
+				"id" : "GNU",
+				"implicit" : 
+				{
+					"includeDirectories" : 
+					[
+						"E:/Applications/Jetbrains/Clion/bin/mingw/lib/gcc/x86_64-w64-mingw32/13.1.0/include",
+						"E:/Applications/Jetbrains/Clion/bin/mingw/include",
+						"E:/Applications/Jetbrains/Clion/bin/mingw/lib/gcc/x86_64-w64-mingw32/13.1.0/include-fixed",
+						"E:/Applications/Jetbrains/Clion/bin/mingw/x86_64-w64-mingw32/include"
+					],
+					"linkDirectories" : 
+					[
+						"E:/Applications/Jetbrains/Clion/bin/mingw/lib/gcc/x86_64-w64-mingw32/13.1.0",
+						"E:/Applications/Jetbrains/Clion/bin/mingw/lib/gcc",
+						"E:/Applications/Jetbrains/Clion/bin/mingw/x86_64-w64-mingw32/lib",
+						"E:/Applications/Jetbrains/Clion/bin/mingw/lib"
+					],
+					"linkFrameworkDirectories" : [],
+					"linkLibraries" : 
+					[
+						"mingw32",
+						"gcc",
+						"moldname",
+						"mingwex",
+						"kernel32",
+						"pthread",
+						"advapi32",
+						"shell32",
+						"user32",
+						"kernel32",
+						"iconv",
+						"mingw32",
+						"gcc",
+						"moldname",
+						"mingwex",
+						"kernel32"
+					]
+				},
+				"path" : "E:/Applications/Jetbrains/Clion/bin/mingw/bin/gcc.exe",
+				"version" : "13.1.0"
+			},
+			"language" : "C",
+			"sourceFileExtensions" : 
+			[
+				"c",
+				"m"
+			]
+		},
+		{
+			"compiler" : 
+			{
+				"id" : "GNU",
+				"implicit" : 
+				{
+					"includeDirectories" : 
+					[
+						"E:/Applications/Jetbrains/Clion/bin/mingw/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++",
+						"E:/Applications/Jetbrains/Clion/bin/mingw/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/x86_64-w64-mingw32",
+						"E:/Applications/Jetbrains/Clion/bin/mingw/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/backward",
+						"E:/Applications/Jetbrains/Clion/bin/mingw/lib/gcc/x86_64-w64-mingw32/13.1.0/include",
+						"E:/Applications/Jetbrains/Clion/bin/mingw/include",
+						"E:/Applications/Jetbrains/Clion/bin/mingw/lib/gcc/x86_64-w64-mingw32/13.1.0/include-fixed",
+						"E:/Applications/Jetbrains/Clion/bin/mingw/x86_64-w64-mingw32/include"
+					],
+					"linkDirectories" : 
+					[
+						"E:/Applications/Jetbrains/Clion/bin/mingw/lib/gcc/x86_64-w64-mingw32/13.1.0",
+						"E:/Applications/Jetbrains/Clion/bin/mingw/lib/gcc",
+						"E:/Applications/Jetbrains/Clion/bin/mingw/x86_64-w64-mingw32/lib",
+						"E:/Applications/Jetbrains/Clion/bin/mingw/lib"
+					],
+					"linkFrameworkDirectories" : [],
+					"linkLibraries" : 
+					[
+						"stdc++",
+						"mingw32",
+						"gcc_s",
+						"gcc",
+						"moldname",
+						"mingwex",
+						"kernel32",
+						"pthread",
+						"advapi32",
+						"shell32",
+						"user32",
+						"kernel32",
+						"iconv",
+						"mingw32",
+						"gcc_s",
+						"gcc",
+						"moldname",
+						"mingwex",
+						"kernel32"
+					]
+				},
+				"path" : "E:/Applications/Jetbrains/Clion/bin/mingw/bin/g++.exe",
+				"version" : "13.1.0"
+			},
+			"language" : "CXX",
+			"sourceFileExtensions" : 
+			[
+				"C",
+				"M",
+				"c++",
+				"cc",
+				"cpp",
+				"cxx",
+				"mm",
+				"mpp",
+				"CPP",
+				"ixx",
+				"cppm",
+				"ccm",
+				"cxxm",
+				"c++m"
+			]
+		},
+		{
+			"compiler" : 
+			{
+				"implicit" : {},
+				"path" : "E:/Applications/Jetbrains/Clion/bin/mingw/bin/windres.exe"
+			},
+			"language" : "RC",
+			"sourceFileExtensions" : 
+			[
+				"rc",
+				"RC"
+			]
+		}
+	],
+	"version" : 
+	{
+		"major" : 1,
+		"minor" : 0
+	}
+}
