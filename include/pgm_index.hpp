@@ -394,8 +394,8 @@ namespace pgm
              }
          }
 
-        void create_corrections_simple() {
-            Covered_Value key_nums_tmp = key_nums * 2;
+        void create_corrections_simple() { // correction used for simple simd
+            Correction_Value key_nums_tmp = key_nums * 2;
             for (auto it = segments.begin(); it < std::prev(segments.end()); it++) {
                 auto &s = *it;
                 auto covered = s.covered;
@@ -403,7 +403,7 @@ namespace pgm
                 Covered_Value max_min_covered = 0;
                 for (auto i = 0; i + key_nums_tmp < covered; i = i + key_nums_tmp) {
                     max_min_covered++;
-                    alignas(align_val) Correction_Value *corrections_simd_tmp = aligned_new<Intercept_Value>(key_nums_tmp);
+                    alignas(align_val) Correction_Value *corrections_simd_tmp = aligned_new<Correction_Value>(key_nums_tmp);
                     for (Covered_Value j = 0; j < key_nums_tmp; j++) {
                         corrections_simd_tmp[j] = get_correction(corrections.data(), n, j + i + first, signs);
                     }
@@ -577,9 +577,9 @@ namespace pgm
                 Intercept_Value intercept = s.intercept;
 
                 Covered_Value covered_length_tmp = cover_length[++covered_length_pointer];
+                // covered_length_tmp = 0;
 
                 if (covered_length_tmp > 0) {
-                    Correction_Value *corrections_p = corrections_simd[++correct_pointers];
                     __m512i slope_correct_v, result_v, contact_int32_v, corrections_v;
                     __m256i int32_v1, int32_v2;
 
@@ -589,6 +589,7 @@ namespace pgm
                     __m512i intercept_v = _mm512_set1_epi32(intercept);
 
                     for (Covered_Value i = 0; i < covered_length_tmp; i++) {
+                        Correction_Value *corrections_p = corrections_simd[++correct_pointers];
                         slope_correct_v = _mm512_srlv_epi64(slope_significand_v, slope_exponent_v);
                         int32_v1 = _mm512_cvtepi64_epi32(slope_correct_v); // lower 8
                         slope_significand_v = _mm512_add_epi64(slope_significand_v, slope_significand_v_add);
@@ -607,7 +608,7 @@ namespace pgm
                         _mm512_store_epi32(result_int32, result_v);
                         for (Covered_Value k = 0; k < key_nums_tmp; k++)
                             output[++pointers] = result_int32[k];
-                        corrections_p += key_nums_tmp;
+                        // corrections_p += key_nums_tmp;
                     }
 
                 }

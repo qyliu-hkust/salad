@@ -31,18 +31,21 @@ cmake -B $code_dir -S $source_dir
 sleep 1
 cd $code_dir
 make
-#16 32 64 128 256 512 1024 2048 4096 8192 16384 32768 65536 131072 262144
+#16 32 62 63 64 126 127 128 254 255 256 512 1024 2048 4096 8192 16384 32768 65536 131072 262144
 #64 128 256 512 1024 2048 4096 8192 16384 32768 65536 131072
 #"simd" "normal" "simd_simple"
-for epsilon in 126 127
+for dataset in "cw12b-1M" "ccnews-1M"
 do
-  echo "————————————epsilon: $epsilon————————————"
-  for repeat in 1 2 3
+  for epsilon in 16 32 62 63 64 126 127 128 254 255 256 512 1024 2048 4096 8192 16384 32768 65536 131072 262144
   do
-    for decode_type in "simd_simple"
+    echo "————————————dataset : $dataset epsilon: $epsilon————————————"
+    for repeat in 1 2 3
     do
-      $code_dir/pgm_decode $index_type $data_dir/$dataset/$dataset $result_dir/index/$dataset/$index_type/$dataset-$index_type-$epsilon.idx $epsilon $read_only $decode_type $result_dir/log/$dataset/$index_type/$dataset-$index_type-$epsilon
-  #    sleep 5
+      for decode_type in "normal"
+      do
+        $code_dir/pgm_decode $index_type $data_dir/$dataset/$dataset $result_dir/index/$dataset/$index_type/$dataset-$index_type-$epsilon.idx $epsilon $read_only $decode_type $result_dir/log/$dataset/$index_type/$dataset-$index_type-$epsilon
+    #    sleep 5
+      done
     done
   done
 done

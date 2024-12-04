@@ -53,6 +53,26 @@ namespace pgm_sequence {
                 index.normal_init();
                 std::vector<K> result2 = index.normal_decode();
 
+                // index.create_corrections_simple();
+                // index.create_corrections_residual_simple();
+                // std::vector<K> result1 = index.simd_decode_512i_simple();
+                // for (int i = 0;i < result1.size();i++) {
+                //     if (result1[i] != result2[i]) {
+                //         std::cerr << "Error: result1[" << i << "] = " << result1[i] << ", result2[" << i << "] = " << result2[i] << std::endl;
+                //     }
+                // }
+                // index.simd_init(false);
+                // index.create_corrections();
+                // index.create_corrections_residual();
+                // std::vector<K> result1_map = index.result_map_init();
+                // std::vector<K> result1 = index.simd_decode_512i();
+                //
+                // for (int i = 0;i < result1.size();i++) {
+                //     if (result1[result1_map[i]] != result2[i]) {
+                //         std::cerr << "Error: result1[" << i << "] = " << result1[i] << ", result2[" << i << "] = " << result2[i] << std::endl;
+                //     }
+                // }
+
                 size_tmp = index.n;
                 per_integer_time_tmp2 = index.duration;
                 per_integer_time_tmp2 /= size_tmp;
