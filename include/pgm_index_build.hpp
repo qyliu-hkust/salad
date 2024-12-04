@@ -8,6 +8,7 @@
 #include "../external/mm_file/include/mm_file/mm_file.hpp"
 
 namespace pgm_sequence {
+    #define BIT_WIDTH(x) ((x) == 0 ? 0 : 64 - __builtin_clzll(x))
     template <typename K, size_t epsilon = 64, typename Floating=double> // K is uint32_t or uint64_t
     class pgm_builder{
     public:
@@ -100,12 +101,13 @@ namespace pgm_sequence {
             uint64_t index_count = 0;
             HuffmanEncoder huffman_encoder;
             for (auto& index : index_sequences) {
-                index.normal_init();
-                huffman_encoder = HuffmanEncoder(index.corrections_vector);
+                index.huffman_init();
+                huffman_encoder = HuffmanEncoder(index.corrections_vector, BIT_WIDTH(epsilon));
                 total_huffman_size += huffman_encoder.calculateSpaceUsage(index.corrections_vector);
                 // index_count++;
                 // std::cerr << "Index " << index_count << " Total size " << total_huffman_size << std::endl;
             }
+            total_huffman_size = total_huffman_size / 8;
             std::cerr << "Total Huffman Size: " << total_huffman_size << " bytes" << std::endl << std::endl;
         }
 

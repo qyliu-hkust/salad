@@ -33,13 +33,13 @@ cd $code_dir
 make
 #16 32 64 128 256 512 1024 2048 4096 8192 16384 32768 65536 131072 262144
 #64 128 256 512 1024 2048 4096 8192 16384 32768 65536 131072
-#"simd" "normal"
-for epsilon in 63 127
+#"simd" "normal" "simd_simple"
+for epsilon in 126 127
 do
   echo "————————————epsilon: $epsilon————————————"
-  for repeat in 1 2 3 4 5
+  for repeat in 1 2 3
   do
-    for decode_type in "normal" "simd_simple" "simd"
+    for decode_type in "simd_simple"
     do
       $code_dir/pgm_decode $index_type $data_dir/$dataset/$dataset $result_dir/index/$dataset/$index_type/$dataset-$index_type-$epsilon.idx $epsilon $read_only $decode_type $result_dir/log/$dataset/$index_type/$dataset-$index_type-$epsilon
   #    sleep 5

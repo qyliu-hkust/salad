@@ -269,6 +269,18 @@ namespace pgm
             }
         }
 
+        void huffman_init() {
+            corrections_vector.resize(n, 0);
+            for(auto &s : segments) {
+                auto covered = s.covered;
+                auto first = s.first;
+                for (Covered_Value j = 0; j < covered; ++j) {
+                    // Correction_Value Tmp = get_correction(corrections.data(), n, j + first, signs);
+                    corrections_vector[j + first] = abs(get_correction(corrections.data(), n, j + first, signs));
+                }
+            }
+        }
+
         void simd_init(bool use_max = true) {
             segments_sort = segments;
             sort(segments_sort.begin(), segments_sort.end());
@@ -418,8 +430,15 @@ namespace pgm
         }
 
         std::vector<K> normal_decode() {
-            std::vector<K> out;
-            out.resize(n);
+            std::vector<K> output;
+            output.resize(n);
+            // warm cache
+            for (int warm_time = 0; warm_time < 5; warm_time++) {
+                for (int i = 0; i < n; i ++) {
+                    output[i] = 0;
+                }
+            }
+
             auto start1 = std::chrono::high_resolution_clock::now();
             for (auto it = segments.begin(); it != std::prev(segments.end()); ++it) {
                 auto& s = *it;
@@ -429,24 +448,32 @@ namespace pgm
                 auto intercept = s.intercept;
                 auto first = s.first;
                 for (Covered_Value j = 0; j < covered; ++j){
-                    out[j + first] = ((j * significand) >> exponent) + intercept + corrections_vector[j +first];
+                    output[j + first] = ((j * significand) >> exponent) + intercept + corrections_vector[j +first];
                 }
             }
             auto end1 = std::chrono::high_resolution_clock::now();
             auto duration1 = std::chrono::duration_cast<std::chrono::microseconds>(end1 - start1);
             duration = duration1.count();
-            return out;
+            return output;
         }
 
         std::vector<K> simd_decode_512i(){
             std::vector<K> output;
             output.resize(n);
+
             Covered_Value pointers = -1;
             Correction_Value correct_pointers = -1;
             Covered_Value key_nums_tmp = key_nums * 2;
+            // warm cache
+            for (int warm_time = 0; warm_time < 5; warm_time++) {
+                for (int i = 0; i < n; i ++) {
+                    output[++pointers] = 0;
+                }
+                pointers = -1;
+            }
+
             alignas(align_val) Correction_Value *result_int32 = aligned_new<Correction_Value>(key_nums_tmp);
             auto start1 = std::chrono::high_resolution_clock::now();
-
             for(int i = 0; i < slope_significand_simd.size(); i++) { // the slope is int64_t, the corrections and intercept are int32_t, we should align them
                 Covered_Value cover_length_tmp = cover_length[i];
                 if (cover_length_tmp == 0)
@@ -529,6 +556,11 @@ namespace pgm
         std::vector<K> simd_decode_512i_simple(){
             std::vector<K> output;
             output.resize(n);
+            for (int warm_time = 0; warm_time < 5; warm_time++) {
+                for (int i = 0; i < n; i ++) {
+                    output[i] = 0;
+                }
+            }
             Covered_Value pointers = -1;
             Covered_Value correct_pointers = -1;
             Covered_Value correct_residual_pointers = -1;

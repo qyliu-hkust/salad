@@ -26,6 +26,7 @@ struct HuffmanNode {
 class MinHeap {
 public:
     // 向堆中插入元素
+
     void push(HuffmanNode* node) {
         heap.push_back(node);  // 插入到堆的末尾
         bubbleUp(heap.size() - 1);  // 上浮到正确的位置
@@ -108,10 +109,12 @@ private:
 class HuffmanEncoder {
 protected:
     std::unordered_map<int32_t, std::string> codes;
+    int bit_width = 0;
 public:
     HuffmanEncoder() = default;
 
-    HuffmanEncoder(const std::vector<int32_t>& data) : codes() {
+    HuffmanEncoder(const std::vector<int32_t>& data, const int  bit_width_t) : codes(){
+        bit_width = bit_width_t;
         compressData(data, codes);
     }
 
@@ -125,7 +128,7 @@ public:
         for (const auto& entry : freqMap) {
             HuffmanNode* node = new HuffmanNode(entry.first, entry.second);
             minHeap.push(node);
-            // std::cout << "Node: Value = " << node->value << ", Frequency = " << node->freq << std::endl;
+            // std::cerr << "Node: Value = " << node->value << ", Frequency = " << node->freq << std::endl;
         }
 
         // 构建哈夫曼树
@@ -227,9 +230,9 @@ public:
             freqMap[value]++;
         }
         // 输出符号频率
-        // std::cout << "Symbol Frequencies:\n";
+        // std::cerr << "Symbol Frequencies:\n";
         // for (const auto& entry : freqMap) {
-        //     std::cout << "Value: " << entry.first << " Frequency: " << entry.second << std::endl;
+        //     std::cerr << "Value: " << entry.first << " Frequency: " << entry.second << std::endl;
         // }
 
 
@@ -275,17 +278,16 @@ public:
 
         // 计算哈夫曼编码表的大小
         for (const auto& entry : codes) {
-            int32_t symbolSize = sizeof(entry.first) * 8;  // 假设符号占用一个int32_t的大小
             int32_t codeSize = entry.second.size();  // 编码长度（单位是比特）
             // totalTableSize += symbolSize + (codeSize / 8 + (codeSize % 8 ? 1 : 0));  // 每个编码项的总大小（单位字节）
-            totalTableSize += symbolSize + codeSize;  // 每个编码项的总大小（单位字节）
+            totalTableSize += bit_width + codeSize;  // 每个编码项的总大小（单位字节）
             // totalTableSize += codeSize / 8 + (codeSize % 8 ? 1 : 0);  // 将每个符号的编码长度转为字节
         }
 
         // 计算编码数据的大小
         for (int32_t value : data) {
             const std::string& code = codes.at(value);
-            totalEncodedDataSize += (code.size() / 8 + (code.size() % 8 ? 1 : 0));  // 将每个符号的编码长度转为字节
+            totalEncodedDataSize += code.size();
         }
 
         // 输出结果

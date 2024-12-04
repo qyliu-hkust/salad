@@ -1,7 +1,7 @@
 #!/bin/bash
 
-dataset="cw12b-1M"
-#dataset="ccnews-1M"
+#dataset="cw12b-1M"
+dataset="ccnews-1M"
 
 #result_dir="/media/sirius/BA167427F361AA8B1/Data/Result"
 #data_dir="/media/sirius/BA167427F361AA8B1/Data/CIFF/Output"
