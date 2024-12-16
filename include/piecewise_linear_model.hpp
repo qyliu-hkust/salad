@@ -27,9 +27,9 @@
 #include <vector>
 
 #ifdef _OPENMP
-#include <omp.h>
+// #include <omp.h>
 #else
-#pragma message ("Compilation with -fopenmp is optional but recommended")
+// #pragma message ("Compilation with -fopenmp is optional but recommended")
 #define omp_get_num_procs() 1
 #define omp_get_max_threads() 1
 #endif
@@ -100,6 +100,7 @@ public:
         auto min_y = std::numeric_limits<Y>::lowest();  
         Point p1{x, y >= max_y - epsilon ? max_y : y + epsilon};   
         Point p2{x, y <= min_y + epsilon ? min_y : y - epsilon};
+        // std::cout << epsilon << endl;
         // std::cout << y << std::endl;
         // std::cout << p1.y << " " << p2.y << std::endl;
         // std::cout << std::endl;

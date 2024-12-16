@@ -25,7 +25,9 @@ target_link_libraries(pgm_build sdsl)
 
 add_executable(pgm_decode pgm_decode.cpp)
 target_link_libraries(pgm_decode sdsl)
-
+#
+#add_executable(pgm_query pgm_query.cpp)
+#target_link_libraries(pgm_query sdsl)
 #add_executable(rsd_huffman rsd_huffman.cpp)
 #target_link_libraries(rsd_huffman sdsl)
 

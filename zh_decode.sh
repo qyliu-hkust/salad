@@ -8,8 +8,8 @@ dataset="rb04-4096"
 #data_dir="/mnt/hgfs/Ddatabase/Data"
 #code_dir="/mnt/hgfs/Ddatabase/Build"
 
-result_dir="/media/sirius/Database1/Datasets/CIFF/Output"
-data_dir="/media/sirius/Database1/Datasets/CIFF/Output"
+result_dir="/media/sirius/Database3/Datasets/CIFF/Output"
+data_dir="/media/sirius/Database3/Datasets/CIFF/Output"
 code_dir="/media/sirius/Application/Codes/Cpp/Build"
 #
 #result_dir="/mnt/home/xyzhu/result"
@@ -18,9 +18,9 @@ code_dir="/media/sirius/Application/Codes/Cpp/Build"
 
 read_only="f"
 source_dir="../pgm_index"
-epsilon=128
+epsilon=1
 index_type="pgm"
-decode_type="all"
+decode_type="simd"
 
 mkdir -p "$result_dir/index/$dataset/$index_type"
 mkdir -p "$result_dir/log/$dataset/$index_type"

@@ -8,17 +8,17 @@ dataset="rb04-4096"
 #data_dir="/mnt/hgfs/Ddatabase/Data"
 #code_dir="/mnt/hgfs/Ddatabase/Build"
 
-result_dir="/media/sirius/Database1/Datasets/CIFF/Output"
-data_dir="/media/sirius/Database1/Datasets/CIFF/Output"
+result_dir="/media/sirius/Database3/Datasets/CIFF/Output"
+data_dir="/media/sirius/Database3/Datasets/CIFF/Output"
 code_dir="/media/sirius/Application/Codes/Cpp/Build"
 #
 #result_dir="/mnt/home/xyzhu/result"
 #data_dir="/mnt/home/xyzhu/datasets"
 #code_dir="/mnt/home/xyzhu/codes/Build"
 
-read_only="f"
+read_only="t"
 source_dir="../pgm_index"
-epsilon=128
+epsilon=1
 index_type="pgm"
 decode_type="all"
 
@@ -26,12 +26,13 @@ mkdir -p "$result_dir/index/$dataset/$index_type"
 mkdir -p "$result_dir/log/$dataset/$index_type"
 #
 ## build index
-#rm -r $code_dir
-#cmake -B $code_dir -S $source_dir
+rm -r $code_dir
+cmake -B $code_dir -S $source_dir
 sleep 1
 cd $code_dir
 make
-$code_dir/pgm_build $index_type $data_dir/$dataset/$dataset $result_dir/index/$dataset/$index_type/$dataset-$index_type-$epsilon.idx $epsilon $read_only $decode_type $result_dir/log/$dataset/$index_type/$dataset-$index_type-$epsilon.covered.txt
+sleep 1
+$code_dir/pgm_build $index_type $data_dir/$dataset/$dataset $result_dir/index/$dataset/$index_type/$dataset-$index_type-$epsilon.idx $epsilon $read_only $decode_type $result_dir/log/$dataset/$index_type/$dataset-$index_type-$epsilon
 
 # build and check index
 
