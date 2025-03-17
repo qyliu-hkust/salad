@@ -93,7 +93,6 @@ inline size_t union_u32_normal(const uint32_t *a, const uint32_t *b, size_t a_si
 		b += ge;
 		out_end++;
 	}
-	// cerr << "Debug 1" << endl;
 	std::memcpy(out_end, a, (a_end - a) * sizeof(uint32_t));
 	out_end += a_end - a;
 	std::memcpy(out_end, b, (b_end - b) * sizeof(uint32_t));
@@ -257,21 +256,17 @@ size_t union_u32_simd_2(const uint32_t *list1, const uint32_t *list2, size_t siz
 }
 
 // nearly the same as above, only changed to replace one shuffle with a blend
-inline size_t union_u32_simd(const uint32_t *list1, const uint32_t *list2, size_t size1, size_t size2, uint32_t *result){
+inline size_t union_u32_simd(const uint32_t *list1, const uint32_t *list2, size_t size1, size_t size2, uint32_t *result, int id=0){
 	size_t count = 0;
 	size_t i_a = 0, i_b = 0;
 	// trim lengths to be a multiple of 16
-	size_t st_a = ((size1-1) / 16) * 16;
-	size_t st_b = ((size2-1) / 16) * 16;
+	const size_t st_a = ((size1-1) / 16 - 1) * 16;
+	const size_t st_b = ((size2-1) / 16 - 1) * 16;
 	// assumes ~0 -> all bits set is not used
 	uint32_t a_nextfirst, b_nextfirst;
-// #if !BLEND
-// 	uint32_t endofblock=~0;
-// #else
-	__m512i old = _mm512_set1_epi32(-10); //FIXME: hardcoded, use something related to the lists
-// #endif
+	const __m512i circlic_shuffle = _mm512_set_epi32(14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 15);
+	__m512i old = _mm512_set1_epi32(-1); //it's a min value that is not in the list
 	alignas(64) uint32_t maxtail[16];
-	// cerr << "Debug 1" << endl;
 
 	if(i_a < st_a && i_b < st_b){
 		// load all the shuffles
@@ -289,19 +284,19 @@ inline size_t union_u32_simd(const uint32_t *list1, const uint32_t *list2, size_
 		__mmask16 kL4L5 = blendmasks[3];
 
 		__m512i vreverse = _mm512_load_epi32(reverseshuffle);
-		// cerr << "Debug 2" << endl;
 
 		__m512i v_a = _mm512_loadu_epi32(list1);
 		__m512i vb = _mm512_loadu_epi32(list2);
 		__m512i v_b = _mm512_permutexvar_epi32(vreverse, vb);
 
+		// cout << "Debug 7" << endl;
 
 		do{
 			// bitonic merge network
 			// level 1
-			__m512i min = _mm512_min_epi32(v_a, v_b);
-			__m512i max = _mm512_max_epi32(v_a, v_b);
-			__m512i L = _mm512_mask_blend_epi32(kL1L2, min, max);
+			__m512i min = _mm512_min_epi32(v_a, v_b); // find minimum of both vectors in each position
+			__m512i max = _mm512_max_epi32(v_a, v_b); // find maximum of both vectors in each position
+			__m512i L = _mm512_mask_blend_epi32(kL1L2, min, max); // blend minimum and maximum
 			__m512i H = _mm512_permutex2var_epi32(min, vL1L2, max);
 			// level 2
 			min = _mm512_min_epi32(L, H);
@@ -325,38 +320,51 @@ inline size_t union_u32_simd(const uint32_t *list1, const uint32_t *list2, size_
 			H = _mm512_permutex2var_epi32(min, vL5Out_H, max);
 
 			__m512i recon = _mm512_mask_blend_epi32(0x7fff, old, L);
-			// cerr << "Debug 2" << endl;
-			const __m512i circlic_shuffle = _mm512_set_epi32(14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 15);
+
 			__m512i dedup = _mm512_permutexvar_epi32(circlic_shuffle, recon);
 			__mmask16 kmask = _mm512_cmpneq_epi32_mask(dedup, L);
+			// if (id == 6)
+			// 	cerr << "Debug 8" << endl;
 			_mm512_mask_compressstoreu_epi32(&result[count], kmask, L);
+
 			count += _mm_popcnt_u32(kmask); // number of elements written
 			// remember minimum for next iteration
 			old = L;
 
 			v_a = H;
 			// compare first element of the next block in both lists
-			a_nextfirst = list1[i_a+16];
-			b_nextfirst = list2[i_b+16];
+			a_nextfirst = list1[i_a + 16];
+			b_nextfirst = list2[i_b + 16];
 			// write minimum as above out to result
 			// keep maximum and do the same steps as above with next block
 			// next block from one list, which first element in new block is smaller
-			i_a += (a_nextfirst <= b_nextfirst) * 16;
-			i_b += (a_nextfirst > b_nextfirst) * 16;
-			size_t index = (a_nextfirst <= b_nextfirst)? i_a: i_b;
-			const uint32_t *base = (a_nextfirst <= b_nextfirst)? list1: list2;
+
+			bool a_next = (a_nextfirst <= b_nextfirst);
+			i_a += a_next * 16;
+			i_b += !a_next * 16;
+			size_t index = a_next ? i_a: i_b;
+			const uint32_t *base = a_next ? list1: list2;
 			v_b = _mm512_loadu_epi32(&base[index]);
-			// cerr << "Debug 2" << endl;
+
+			// i_a += (a_nextfirst <= b_nextfirst) * 16;
+			// i_b += (a_nextfirst > b_nextfirst) * 16;
+			// size_t index = (a_nextfirst <= b_nextfirst)? i_a: i_b;
+			// const uint32_t *base = (a_nextfirst <= b_nextfirst)? list1: list2;
+			// if (id == 6)
+			// 	cerr << "Debug 9" << " " << index << " " << i_a << " " << i_b << " " << size1 << " " << size2 << endl;
+			// v_b = _mm512_loadu_epi32(&base[index]);
+			// if (id == 6)
+			// 	cerr << "Debug 10" << endl;
 		}while(i_a < st_a && i_b < st_b);
-		
+		// cout << "Debug 3" << endl;
 		// v_a contains max vector from last comparison, v_b contains new, might be out of bounds
 		// indices i_a and i_b correct, still need to handle v_a
-		_mm512_store_epi32(maxtail, _mm512_permutexvar_epi32(vreverse, v_a));
-// #if BLEND
-		uint32_t endofblock = _mm_extract_epi32(_mm512_extracti32x4_epi32(old, 3), 3);
-// #endif
 
-		size_t mti=0;
+		_mm512_store_epi32(maxtail, _mm512_permutexvar_epi32(vreverse, v_a));
+
+		uint32_t endofblock = _mm_extract_epi32(_mm512_extracti32x4_epi32(old, 3), 3);
+		// cout << "Debug 4" << endl;
+		size_t mti = 0;
 		size_t mtsize = std::unique(maxtail, maxtail+16) - maxtail; // deduplicate tail
 		if(a_nextfirst <= b_nextfirst){
 			// endofblock needs to be considered too, for deduplication
@@ -377,7 +385,8 @@ inline size_t union_u32_simd(const uint32_t *list1, const uint32_t *list2, size_
 			i_b += 16;
 		}else{
 			// endofblock needs to be considered too, for deduplication
-			if(endofblock == std::min(maxtail[0],list2[i_b])) --count;
+			if(endofblock == std::min(maxtail[0],list2[i_b]))
+				--count;
 			// compare maxtail with list2
 			while(mti < mtsize && i_b < size2){
 				if(maxtail[mti] < list2[i_b]){
@@ -397,10 +406,12 @@ inline size_t union_u32_simd(const uint32_t *list1, const uint32_t *list2, size_
 			result[count++] = maxtail[mti++];
 		}
 	}
+	// cout << "Debug 5" << endl;
 
-	// scalar tail
 	count += union_u32_normal(list1+i_a, list2+i_b, size1-i_a, size2-i_b, result+count);
+	// cout << "Debug 6" << endl;
 
 	return count;
 }
+
 #undef BLEND

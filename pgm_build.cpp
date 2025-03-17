@@ -32,10 +32,12 @@ void create_collection_pgm(const string input_basename, const string output_base
         // index.optPFD_encode();
         // index.init_first_pos_index(output_basename); // build s+ tree for first_pos
         if(!log_filename.empty()) { // save covered and residual
-            index.statistic_index(log_filename);
-            index.statistic_gap_list(input_basename + ".docs", log_filename);
-            index.statistic_gap_segment(log_filename);
-            index.save_residual(log_filename);
+            // index.statistic_index(log_filename);
+            // index.statistic_gap_list(input_basename + ".docs", log_filename);
+            // index.statistic_gap_segment(log_filename);
+            // index.save_residual(log_filename);
+
+            index.save_residual_random_segment(log_filename);
         }
         // index.statistic_index(log_filename);
         // index.normal_init();
@@ -69,30 +71,14 @@ int main(int argc, const char** argv)
         {
             case 1: create_collection_pgm<1>(input_basename, output_basename); break;
             case 15: create_collection_pgm<15>(input_basename, output_basename); break;
-            // case 16: create_collection_pgm<16>(input_basename, output_basename); break;
             case 31: create_collection_pgm<31>(input_basename, output_basename); break;
-            // case 32: create_collection_pgm<32>(input_basename, output_basename); break;
             case 63: create_collection_pgm<63>(input_basename, output_basename); break;
-            // case 64: create_collection_pgm<64>(input_basename, output_basename); break;
-            // case 126: create_collection_pgm<126>(input_basename, output_basename); break;
             case 127: create_collection_pgm<127>(input_basename, output_basename); break;
-            // case 128: create_collection_pgm<128>(input_basename, output_basename); break;
             case 255: create_collection_pgm<255>(input_basename, output_basename); break;
-            // case 256: create_collection_pgm<256>(input_basename, output_basename); break;
             case 511: create_collection_pgm<511>(input_basename, output_basename); break;
-            // case 512: create_collection_pgm<512>(input_basename, output_basename); break;
             case 1023: create_collection_pgm<1023>(input_basename, output_basename); break;
-            // case 1024: create_collection_pgm<1024>(input_basename, output_basename); break;
             case 2047: create_collection_pgm<2047>(input_basename, output_basename); break;
-            // case 2048: create_collection_pgm<2048>(input_basename, output_basename); break;
             case 4095: create_collection_pgm<4095>(input_basename, output_basename); break;
-            // case 4096: create_collection_pgm<4096>(input_basename, output_basename); break;
-            // case 8192: create_collection_pgm<8192>(input_basename, output_basename); break;
-            // case 16384: create_collection_pgm<16384>(input_basename, output_basename); break;
-            // case 32768: create_collection_pgm<32768>(input_basename, output_basename); break;
-            // case 65536: create_collection_pgm<65536>(input_basename, output_basename); break;
-            // case 131072: create_collection_pgm<131072>(input_basename, output_basename); break;
-            // case 262144: create_collection_pgm<262144>(input_basename, output_basename); break;
             default: std::cerr << "Unsupported Epsilon Value: " << epsilon << std::endl; break;
         }
     else

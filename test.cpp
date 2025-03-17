@@ -1,214 +1,290 @@
 #include <immintrin.h>
 #include <iostream>
-#include <vp2intersect.h>
-#include <vp2union.hpp>
-// #include <hash_table.hpp>
-#include <limits.h>
-#include <optPFD_encode.hpp>
-//
+#include <cstring>
+#include<cstdio>
+#include <vector>
+#include <algorithm>
 using namespace std;
-//
-//const int align_val = 64;
-//const int key_nums = 16;
-//
-const int align_val = 32;
-template <typename T>
-T* aligned_new(uint64_t num_elements) {
-    void* ptr = std::aligned_alloc(align_val, num_elements * sizeof(T));
-    if (!ptr) throw std::bad_alloc();
-    return static_cast<T*>(ptr);
+alignas(64) static uint32_t reverseshuffle[]={ 15,14,13,12,11,10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 };
+
+// one shuffle can be replaced with a simple blend, as min/max are commutative
+static int blendmasks[] = {
+    0b11111111'00000000, // L1->L2
+    0b11110000'11110000, // L2->L3
+    0b11001100'11001100, // L3->L4
+    0b10101010'10101010, // L4->L5
+};
+// changed shuffles for blend+shuflle per level
+#define L 0
+#define H 16
+alignas(64) static uint32_t shuffles2[][16]={
+    { 8|L, 9|L,10|L,11|L,12|L,13|L,14|L,15|L,  0|H, 1|H, 2|H, 3|H, 4|H, 5|H, 6|H, 7|H }, // L1->L2 for H
+    { 4|L, 5|L, 6|L, 7|L, 0|H, 1|H, 2|H, 3|H, 12|L,13|L,14|L,15|L, 8|H, 9|H,10|H,11|H }, // L2->L3 for H
+    { 2|L, 3|L, 0|H, 1|H, 6|L, 7|L, 4|H, 5|H, 10|L,11|L, 8|H, 9|H,14|L,15|L,12|H,13|H }, // L3->L4 for H
+    { 1|L, 0|H, 3|L, 2|H, 5|L, 4|H, 7|L, 6|H,  9|L, 8|H,11|L,10|H,13|L,12|H,15|L,14|H }, // L4->L5 for H
+
+    { 0|L, 0|H, 1|L, 1|H, 2|L, 2|H, 3|L, 3|H,  4|L, 4|H, 5|L, 5|H, 6|L, 6|H, 7|L, 7|H }, // output first 16 elements
+    {15|H,15|L,14|H,14|L,13|H,13|L,12|H,12|L, 11|H,11|L,10|H,10|L, 9|H, 9|L, 8|H, 8|L }
+    // output for second reversed for next iteration
+};
+#undef L
+#undef H
+
+inline size_t union_u32_normal(const uint32_t *a, const uint32_t *b, size_t a_size, size_t b_size, uint32_t *out) {
+    const uint32_t *a_end = a + a_size;
+    const uint32_t *b_end = b + b_size;
+    uint32_t *out_end = out;
+    while (a != a_end && b != b_end) {
+        bool le = (*a <= *b);
+        bool ge = (*a >= *b);
+        *out_end = le ? *a : *b;
+        a += le;
+        b += ge;
+        out_end++;
+    }
+    std::memcpy(out_end, a, (a_end - a) * sizeof(uint32_t));
+    out_end += a_end - a;
+    std::memcpy(out_end, b, (b_end - b) * sizeof(uint32_t));
+    out_end += b_end - b;
+    return out_end - out;
 }
 
-uint32_t simsimd_intersect_u32_serial(uint32_t const *a, uint32_t const *b,uint32_t a_length, uint32_t b_length,uint32_t* intersect) {
-    uint32_t* const intersect_start = intersect;
+inline size_t union_u32_simd(const uint32_t *list1, const uint32_t *list2, size_t size1, size_t size2, uint32_t *result) {
+    // ... 你的原始代码（保留不变，但添加调试输出） ...
+    size_t count = 0;
+    size_t i_a = 0, i_b = 0;
+    const size_t st_a = ((size1-1)/16)*16;
+    const size_t st_b = ((size2-1)/16)*16;
+    uint32_t a_nextfirst, b_nextfirst;
+    __m512i circlic_shuffle = _mm512_set_epi32(14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,15);
+    __m512i old = _mm512_set1_epi32(-1); // FIXME: 硬编码
+    alignas(64) uint32_t maxtail[16];
+    alignas(64) int32_t temp[16];
 
-    const uint32_t* a_end = a + a_length;
-    const uint32_t* b_end = b + b_length;
+    if (i_a < st_a && i_b < st_b) {
+        // load all the shuffles
+        __m512i vL1L2 = _mm512_load_epi32(shuffles2[0]);
+        __m512i vL2L3 = _mm512_load_epi32(shuffles2[1]);
+        __m512i vL3L4 = _mm512_load_epi32(shuffles2[2]);
+        __m512i vL4L5 = _mm512_load_epi32(shuffles2[3]);
+        __m512i vL5Out_L = _mm512_load_epi32(shuffles2[4]);
+        __m512i vL5Out_H = _mm512_load_epi32(shuffles2[5]);
 
-    while (a < a_end && b < b_end) {
-        if (*a < *b) {
-            ++a;
-        } else if (*a > *b) {
-            ++b;
-        } else {
-            // Found a match
-            *intersect++ = *a;
-            ++a;
-            ++b;
+
+        __mmask16 kL1L2 = blendmasks[0];
+        __mmask16 kL2L3 = blendmasks[1];
+        __mmask16 kL3L4 = blendmasks[2];
+        __mmask16 kL4L5 = blendmasks[3];
+
+        __m512i vreverse = _mm512_load_epi32(reverseshuffle);
+
+        __m512i v_a = _mm512_loadu_epi32(list1);
+        __m512i vb = _mm512_loadu_epi32(list2);
+        __m512i v_b = _mm512_permutexvar_epi32(vreverse, vb);
+
+        do {
+	    // bitonic merge network
+            cerr << "New Round" << endl;
+            _mm512_store_epi32(temp, v_a);
+            cerr << "v_a: ";
+            for (int i=0; i<16; i++) {
+                cerr << temp[i] << " ";
+            }
+            cerr << endl << "v_b: ";
+            _mm512_store_epi32(temp, v_b);
+            for (int i=0; i<16; i++) {
+                cerr << temp[i] << " ";
+            }
+            cerr << endl;
+	    // level 1
+	    __m512i min = _mm512_min_epi32(v_a, v_b); // find minimum of both vectors in each position
+	    __m512i max = _mm512_max_epi32(v_a, v_b); // find maximum of both vectors in each position
+	    __m512i L = _mm512_mask_blend_epi32(kL1L2, min, max); // blend minimum and maximum
+	    __m512i H = _mm512_permutex2var_epi32(min, vL1L2, max);
+            _mm512_store_epi32(temp, L);
+            cerr << "Level 1 Lower: ";
+            for (int i=0; i<16; i++) {
+                    cerr << temp[i] << " ";
+            }
+            cerr << endl;
+            _mm512_store_epi32(temp, H);
+            cerr << "Higher: ";
+            for (int i=0; i<16; i++) {
+                    cerr << temp[i] << " ";
+            }
+            cerr << endl << endl;
+
+	    // level 2
+	    min = _mm512_min_epi32(L, H);
+	    max = _mm512_max_epi32(L, H);
+	    L = _mm512_mask_blend_epi32(kL2L3, min, max);
+	    H = _mm512_permutex2var_epi32(min, vL2L3, max);
+            _mm512_store_epi32(temp, L);
+            cerr << "Level 2 Lower: ";
+            for (int i=0; i<16; i++) {
+                cerr << temp[i] << " ";
+            }
+            cerr << endl;
+            _mm512_store_epi32(temp, H);
+            cerr << "Higher: ";
+            for (int i=0; i<16; i++) {
+                cerr << temp[i] << " ";
+            }
+            cerr << endl << endl;
+	    // level 3
+	    min = _mm512_min_epi32(L, H);
+	    max = _mm512_max_epi32(L, H);
+	    L = _mm512_mask_blend_epi32(kL3L4, min, max);
+	    H = _mm512_permutex2var_epi32(min, vL3L4, max);
+            _mm512_store_epi32(temp, L);
+            cerr << "Level 3 Lower: ";
+            for (int i=0; i<16; i++) {
+                cerr << temp[i] << " ";
+            }
+            cerr << endl;
+            _mm512_store_epi32(temp, H);
+            cerr << "Higher: ";
+            for (int i=0; i<16; i++) {
+                cerr << temp[i] << " ";
+            }
+            cerr << endl << endl;
+	    // level 4
+	    min = _mm512_min_epi32(L, H);
+	    max = _mm512_max_epi32(L, H);
+	    L = _mm512_mask_blend_epi32(kL4L5, min, max);
+	    H = _mm512_permutex2var_epi32(min, vL4L5, max);
+            _mm512_store_epi32(temp, L);
+            cerr << "Level 4 Lower: ";
+            for (int i=0; i<16; i++) {
+                cerr << temp[i] << " ";
+            }
+            cerr << endl;
+            _mm512_store_epi32(temp, H);
+            cerr << "Higher: ";
+            for (int i=0; i<16; i++) {
+                cerr << temp[i] << " ";
+            }
+            cerr << endl << endl;
+	    // level 5
+	    min = _mm512_min_epi32(L, H);
+	    max = _mm512_max_epi32(L, H);
+	    L = _mm512_permutex2var_epi32(min, vL5Out_L, max);
+	    H = _mm512_permutex2var_epi32(min, vL5Out_H, max);
+            _mm512_store_epi32(temp, L);
+            cerr << "Level 5 Lower: ";
+            for (int i=0; i<16; i++) {
+                cerr << temp[i] << " ";
+            }
+            cerr << endl;
+            _mm512_store_epi32(temp, H);
+            cerr << "Higher: ";
+            for (int i=0; i<16; i++) {
+                cerr << temp[i] << " ";
+            }
+            cerr << endl << endl;
+
+	    __m512i recon = _mm512_mask_blend_epi32(0x7fff, old, L);
+            _mm512_store_epi32(temp, recon);
+            cerr << "Recon: ";
+            for (int i=0; i<16; i++) {
+                cerr << temp[i] << " ";
+            }
+            cerr << endl << endl;
+
+	    __m512i dedup = _mm512_permutexvar_epi32(circlic_shuffle, recon);
+	    __mmask16 kmask = _mm512_cmpneq_epi32_mask(dedup, L);
+	    _mm512_mask_compressstoreu_epi32(&result[count], kmask, L);
+            for (int i = count; i < count + _mm_popcnt_u32(kmask); i++) {
+                cerr << result[i] << " ";
+            }
+	    count += _mm_popcnt_u32(kmask); // number of elements written
+            cerr << endl << _mm_popcnt_u32(kmask) << endl;
+	    // remember minimum for next iteration
+	    old = L;
+
+	    v_a = H;
+	    // compare first element of the next block in both lists
+	    a_nextfirst = list1[i_a+16];
+	    b_nextfirst = list2[i_b+16];
+	    // write minimum as above out to result
+	    // keep maximum and do the same steps as above with next block
+	    // next block from one list, which first element in new block is smaller
+	    bool a_next = (a_nextfirst <= b_nextfirst);
+	    i_a += a_next * 16;
+	    i_b += !a_next * 16;
+	    size_t index = a_next ? i_a: i_b;
+	    const uint32_t *base = a_next ? list1: list2;
+	    v_b = _mm512_loadu_epi32(&base[index]);
+        } while (i_a < st_a && i_b < st_b);
+        _mm512_store_epi32(maxtail, _mm512_permutexvar_epi32(vreverse, v_a));
+
+        uint32_t endofblock = _mm_extract_epi32(_mm512_extracti32x4_epi32(old, 3), 3);
+
+        size_t mti = 0;
+        size_t mtsize = std::unique(maxtail, maxtail+16) - maxtail; // deduplicate tail
+        if(a_nextfirst <= b_nextfirst){
+            // endofblock needs to be considered too, for deduplication
+            if(endofblock == std::min(maxtail[0],list1[i_a])) --count;
+            // compare maxtail with list1
+            while(mti < mtsize && i_a < size1){
+                if(maxtail[mti] < list1[i_a]){
+                    result[count++] = maxtail[mti];
+                    mti++;
+                }else if(maxtail[mti] > list1[i_a]){
+                    result[count++] = list1[i_a];
+                    i_a++;
+                }else{
+                    result[count++] = maxtail[mti];
+                    mti++; i_a++;
+                }
+            }
+            i_b += 16;
+        }else{
+            // endofblock needs to be considered too, for deduplication
+            if(endofblock == std::min(maxtail[0],list2[i_b]))
+                --count;
+            // compare maxtail with list2
+            while(mti < mtsize && i_b < size2){
+                if(maxtail[mti] < list2[i_b]){
+                    result[count++] = maxtail[mti];
+                    mti++;
+                }else if(maxtail[mti] > list2[i_b]){
+                    result[count++] = list2[i_b];
+                    i_b++;
+                }else{
+                    result[count++] = maxtail[mti];
+                    mti++; i_b++;
+                }
+            }
+            i_a += 16;
+        }
+        while(mti < mtsize){
+            result[count++] = maxtail[mti++];
         }
     }
-    return intersect - intersect_start;
+
+    count += union_u32_normal(list1+i_a, list2+i_b, size1-i_a, size2-i_b, result+count);
+
+    return count;
 }
-
-void simsimd_intersect_u32_ice(
-    uint32_t const* shorter, uint32_t const* longer,
-    uint32_t shorter_length, uint32_t longer_length,
-    uint32_t& results) {
-
-    uint32_t intersection_count = 0;
-    uint32_t shorter_idx = 0, longer_idx = 0;
-    uint32_t longer_load_size;
-    __mmask16 longer_mask;
-
-    while (shorter_idx < shorter_length && longer_idx < longer_length) {
-        // Load `shorter_member` and broadcast it to shorter vector, load `longer_members_vec` from memory.
-        uint32_t longer_remaining = longer_length - longer_idx;
-        uint32_t shorter_member = shorter[shorter_idx];
-        __m512i shorter_member_vec = _mm512_set1_epi32(*(int*)&shorter_member);
-        __m512i longer_members_vec;
-        if (longer_remaining < 16) {
-            longer_load_size = longer_remaining;
-            longer_mask = (__mmask16)_bzhi_u32(0xFFFF, longer_remaining);
-        } else {
-            longer_load_size = 16;
-            longer_mask = 0xFFFF;
-        }
-        longer_members_vec = _mm512_maskz_loadu_epi32(longer_mask, (__m512i const*)(longer + longer_idx));
-
-        // Compare `shorter_member` with each element in `longer_members_vec`,
-        // and jump to the position of the match. There can be only one match at most!
-        __mmask16 equal_mask = _mm512_mask_cmpeq_epu32_mask(longer_mask, shorter_member_vec, longer_members_vec);
-        uint32_t equal_count = equal_mask != 0;
-        intersection_count += equal_count;
-
-        // When comparing a scalar against a sorted array, we can find three types of elements:
-        // - entries that scalar is greater than,
-        // - entries that scalar is equal to,
-        // - entries that scalar is less than,
-        // ... in that order! Any of them can be an empty set.
-        __mmask16 greater_mask = _mm512_mask_cmplt_epu32_mask(longer_mask, longer_members_vec, shorter_member_vec);
-        uint32_t greater_count = _mm_popcnt_u32(greater_mask);
-        uint32_t smaller_exists = longer_load_size > greater_count - equal_count;
-
-        // Advance the first array:
-        // - to the next element, if a match was found,
-        // - to the next element, if the current element is smaller than any elements in the second array.
-        shorter_idx += equal_count | smaller_exists;
-        // Advance the second array:
-        // - to the next element after match, if a match was found,
-        // - to the first element that is greater than the current element in the first array, if no match was found.
-        longer_idx += greater_count + equal_count;
-
-        // At any given cycle, take one entry from shorter array and compare it with multiple from the longer array.
-        // For that, we need to swap the arrays if necessary.
-        if ((shorter_length - shorter_idx) > (longer_length - longer_idx)) {
-            uint32_t const* temp_array = shorter;
-            shorter = longer, longer = temp_array;
-            uint32_t temp_length = shorter_length;
-            shorter_length = longer_length, longer_length = temp_length;
-            uint32_t temp_idx = shorter_idx;
-            shorter_idx = longer_idx, longer_idx = temp_idx;
-        }
-    }
-    results = intersection_count;
-}
-
-uint32_t simsimd_intersect_u32(uint32_t const* a, uint32_t const* b, uint32_t a_length, uint32_t b_length, uint32_t *intersect) {
-    uint32_t result = 0;
-    uint32_t const* const a_end = a + a_length;
-    uint32_t const* const b_end = b + b_length;
-    uint32_t c = 0;
-    union vec_t {
-        __m512i zmm;
-        uint32_t u32[16];
-    } a_vec, b_vec;
-
-    while (a + 16 < a_end && b + 16 < b_end) {
-        a_vec.zmm = _mm512_loadu_si512((__m512i const*)a);
-        b_vec.zmm = _mm512_loadu_si512((__m512i const*)b);
-
-        // Intersecting registers with `_mm512_2intersect_epi16_mask` involves a lot of shuffling
-        // and comparisons, so we want to avoid it if the slices don't overlap at all
-        uint32_t a_min;
-        uint32_t a_max = a_vec.u32[15];
-        uint32_t b_min = b_vec.u32[0];
-        uint32_t b_max = b_vec.u32[15];
-
-        // If the slices don't overlap, advance the appropriate pointer
-        while (a_max < b_min && a + 32 < a_end) {
-            a += 16;
-            a_vec.zmm = _mm512_loadu_si512((__m512i const*)a);
-            a_max = a_vec.u32[15];
-        }
-        a_min = a_vec.u32[0];
-        while (b_max < a_min && b + 32 < b_end) {
-            b += 16;
-            b_vec.zmm = _mm512_loadu_si512((__m512i const*)b);
-            b_max = b_vec.u32[15];
-        }
-        b_min = b_vec.u32[0];
-
-        // Now we are likely to have some overlap, so we can intersect the registers
-        __mmask16 a_matches = _mm512_2intersect_epi32_mask(a_vec.zmm, b_vec.zmm);
-        _mm512_mask_compressstoreu_epi32(intersect + c, a_matches, a_vec.zmm);
-        // std::vector<uint32_t> intersection(16);
-        // _mm512_mask_compressstoreu_epi32(intersection.data(), a_matches, a_vec);
-        //
-        // // 打印交集结果
-        // for (int i = 0; i < 16; ++i) {
-        //     std::cout << result[i] << " ";
-        // }
-        // std::cout << std::endl;
-
-
-        c += _mm_popcnt_u32(a_matches); // The `_popcnt32` symbol isn't recognized by MSVC
-        // cerr << _mm_popcnt_u32(a_matches) << endl;
-        // c += __builtin_popcount(a_matches);
-
-        // Determine the number of entries to skip in each array, by comparing
-        // every element in the vector with the last (largest) element in the other array
-        __m512i a_last_broadcasted = _mm512_set1_epi32(*(int const*)&a_max);
-        __m512i b_last_broadcasted = _mm512_set1_epi32(*(int const*)&b_max);
-        __mmask16 a_step_mask = _mm512_cmple_epu32_mask(a_vec.zmm, b_last_broadcasted);
-        __mmask16 b_step_mask = _mm512_cmple_epu32_mask(b_vec.zmm, a_last_broadcasted);
-        a += 16 - __lzcnt16((uint16_t)a_step_mask);
-        b += 16 - __lzcnt16((uint16_t)b_step_mask);
-    }
-
-    // Handle the tail:
-    c += simsimd_intersect_u32_serial(a, b, a_end - a, b_end - b, intersect + c);
-    // result += c; // And merge it with the main body result
-    return c;
-}
-
-alignas(align_val) int32_t *aa = aligned_new<int32_t>(32);
-alignas(align_val) int32_t *ress = aligned_new<int32_t>(32);
 
 int main() {
-    // 生成两组随机数
-    size_t n = 100000;
-    uint32_t *a = new uint32_t[n];
-    uint32_t *b = new uint32_t[n * 2];
-    std::vector<uint32_t> intersect(n * 3);
-    std::vector<uint32_t> intersect1(n * 3);
-    for (int i = 0; i < n; i++) {
-        a[i] = i;
-        b[i] = i;
-        b[i + n] = i + n;
+    // 测试用例：两个已排序数组
+    uint32_t list1[200];
+    uint32_t list2[200];
+    for (size_t i=0; i<200; i++) {
+        list1[i] = i * 2;
+        list2[i] = i * 3;
     }
+    size_t size1 = sizeof(list1)/sizeof(list1[0]);
+    size_t size2 = sizeof(list2)/sizeof(list2[0]);
 
-    sort(a, a + n);
-    sort (b, b + n * 2);
+    uint32_t result[400];
+    size_t count = union_u32_simd(list1, list2, size1, size2, result);
 
-    size_t result = 0;
-    auto start = std::chrono::high_resolution_clock::now();
-    // result = simsimd_intersect_u32_serial(a, b, n, n, intersect.data());
-    // cerr << "Result 0: " << result << endl;
-    result = union_u32_simd(a, b, n, n * 2, intersect.data());
-    auto end = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-    cout << "Duration 1: " << duration.count() << " us" << endl;
-    cerr << "Result 1: " << result << endl;
-    //
-    start = std::chrono::high_resolution_clock::now();
-    result = union_scalar(a, b, n, n * 2, intersect.data());
-    // result = union_u32_normal(a, b, n, n * 2, intersect.data());
-    // result = simsimd_intersect_u32(a, b, n, n, intersect1.data());
-    // simsimd_intersect_u32_ice(a, b, n, n, result);
-    end = std::chrono::high_resolution_clock::now();
-    duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-    cout << "Duration 2: " << duration.count() << " us" << endl;
-    cerr << "Result 2: " << result << endl;
+    std::cout << "\nCount: " << count << std::endl;
+
+    std::cout << "Result: " << union_u32_normal(list1, list2, size1, size2, result) << std::endl;
 
     return 0;
 }

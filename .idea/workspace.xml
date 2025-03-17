@@ -1,0 +1,474 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="BackendCodeEditorMiscSettings">
+    <option name="/Default/RiderDebugger/RiderRestoreDecompile/RestoreDecompileSetting/@EntryValue" value="false" type="bool" />
+    <option name="/Default/Housekeeping/GlobalSettingsUpgraded/IsUpgraded/@EntryValue" value="true" type="bool" />
+    <option name="/Default/Housekeeping/FeatureSuggestion/FeatureSuggestionManager/DisabledSuggesters/=SwitchToGoToActionSuggester/@EntryIndexedValue" value="true" type="bool" />
+    <option name="/Default/Environment/StickyLines/Enabled/@EntryValue" value="false" type="bool" />
+    <option name="/Default/Environment/Hierarchy/GeneratedFilesCacheKey/Timestamp/@EntryValue" value="3" type="long" />
+    <option name="/Default/Housekeeping/FeatureSuggestion/FeatureSuggestionManager/DisabledSuggesters/=SwitchToGoToActionSuggester/@EntryIndexRemoved" />
+  </component>
+  <component name="CMakePresetLoader">{
+  &quot;useNewFormat&quot;: true
+}</component>
+  <component name="CMakeProjectFlavorService">
+    <option name="flavorId" value="CMakePlainProjectFlavor" />
+  </component>
+  <component name="CMakeReloadState">
+    <option name="reloaded" value="true" />
+  </component>
+  <component name="CMakeRunConfigurationManager">
+    <generated>
+      <config projectName="PGM" targetName="pgm_build" />
+      <config projectName="PGM" targetName="pgm_decode" />
+      <config projectName="PGM" targetName="test" />
+      <config projectName="PGM" targetName="pgm_query" />
+      <config projectName="PGM" targetName="pgm_stats" />
+    </generated>
+  </component>
+  <component name="CMakeSettings">
+    <configurations>
+      <configuration PROFILE_NAME="Debug" ENABLED="true" CONFIG_NAME="Debug" />
+    </configurations>
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="20514f79-88b6-497b-a6b7-c6dc208aed02" name="更改" comment="simd-aware">
+      <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.sh" beforeDir="false" afterPath="$PROJECT_DIR$/build.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/external/FastPFor" beforeDir="false" afterPath="$PROJECT_DIR$/external/FastPFor" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/external/SIMDSetOperations" beforeDir="false" afterPath="$PROJECT_DIR$/external/SIMDSetOperations" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/external/SIMDSetOperations/set_union.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/external/SIMDSetOperations/set_union.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/external/Vp2SetOperation/include/vp2union.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/external/Vp2SetOperation/include/vp2union.hpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/backup-codes (abandoned)/rsd_huffman.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/include/backup-codes (abandoned)/rsd_huffman.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/hash_table.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/include/hash_table.hpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/huffman_encode.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/include/huffman_encode.hpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/optPFD_encode.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/include/optPFD_encode.hpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/pgm_index_build.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/include/pgm_index_build.hpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/pgm_index_enumerate.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/include/pgm_index_enumerate.hpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/pgm_index_query.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/include/pgm_index_query.hpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/sp_tree.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/include/sp_tree.hpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pgm_build.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/pgm_build.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/query.sh" beforeDir="false" afterPath="$PROJECT_DIR$/query.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/test.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/zh_build.sh" beforeDir="false" afterPath="$PROJECT_DIR$/zh_build.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/zh_query.sh" beforeDir="false" afterPath="$PROJECT_DIR$/zh_query.sh" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ClangdSettings">
+    <option name="clangTidyViaClangd" value="false" />
+    <option name="formatViaClangd" value="false" />
+  </component>
+  <component name="ExecutionTargetManager" SELECTED_TARGET="CMakeBuildProfile:Debug" />
+  <component name="Git.Settings">
+    <option name="PUSH_AUTO_UPDATE" value="true" />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="ROOT_SYNC" value="DONT_SYNC" />
+  </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/external/SIMDSetOperations/constants.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/include/pgm_index.hpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/include/pgm_index_build.hpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/include/pgm_index_decode.hpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/include/pgm_index_enumerate.hpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/include/pgm_index_query.hpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/include/piecewise_linear_model.hpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/pgm_build.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/pgm_decode.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/test.cpp" root0="FORCE_HIGHLIGHTING" />
+  </component>
+  <component name="ProjectApplicationVersion">
+    <option name="ide" value="CLion" />
+    <option name="majorVersion" value="2024" />
+    <option name="minorVersion" value="2.2" />
+    <option name="productBranch" value="Classic" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 3
+}</component>
+  <component name="ProjectId" id="2o1MLrGO8Y3bQGxBJRt4axgqLVE" />
+  <component name="ProjectLevelVcsManager">
+    <OptionsSetting value="false" id="Update" />
+    <ConfirmationsSetting value="1" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;CMake 应用程序.pgm_build.executor&quot;: &quot;Run&quot;,
+    &quot;CMake 应用程序.pgm_decode.executor&quot;: &quot;Run&quot;,
+    &quot;CMake 应用程序.pgm_query.executor&quot;: &quot;Run&quot;,
+    &quot;CMake 应用程序.rsd_huffman.executor&quot;: &quot;Run&quot;,
+    &quot;CMake 应用程序.s_tree.executor&quot;: &quot;Run&quot;,
+    &quot;CMake 应用程序.test.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.RadMigrateCodeStyle&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.readMode.enableVisualFormatting&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.west.config.association.type.startup.service&quot;: &quot;true&quot;,
+    &quot;cf.advertisement.text.has.clang-format&quot;: &quot;true&quot;,
+    &quot;cf.first.check.clang-format&quot;: &quot;false&quot;,
+    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;PGM__INDEX__SIMD__V25.1.13&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/media/sirius/Application/Codes/Cpp/Baselines/pgm_index/external/Vp2SetOperation/include&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  }
+}</component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/external/Vp2SetOperation/include" />
+      <recent name="$PROJECT_DIR$/external/vp2intersection/include" />
+      <recent name="$PROJECT_DIR$/external/vp2intersection" />
+      <recent name="$PROJECT_DIR$/include" />
+      <recent name="$PROJECT_DIR$" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/external/vp2intersection/include" />
+      <recent name="$PROJECT_DIR$/include/backup-codes (abandoned)" />
+      <recent name="G:\Database\Clion_Projects\Baselines\pgm_index\include\backup-codes (abandoned)" />
+    </key>
+  </component>
+  <component name="RunManager">
+    <configuration name="test" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="PGM" TARGET_NAME="test" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="PGM" RUN_TARGET_NAME="test">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="PythonConfigurationType" factoryName="Python">
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="" />
+      <option name="SCRIPT_NAME" value="" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration default="true" type="Tox" factoryName="Tox">
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <method v="2" />
+    </configuration>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="应用程序级" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="默认任务">
+      <changelist id="20514f79-88b6-497b-a6b7-c6dc208aed02" name="更改" comment="" />
+      <created>1730032575406</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1730032575406</updated>
+      <workItem from="1730032576435" duration="3115000" />
+      <workItem from="1730035761976" duration="6000" />
+      <workItem from="1730079365857" duration="7179000" />
+      <workItem from="1730089472250" duration="10758000" />
+      <workItem from="1730105789079" duration="3000" />
+      <workItem from="1730166047001" duration="23397000" />
+      <workItem from="1730195052535" duration="651000" />
+      <workItem from="1730203416375" duration="3028000" />
+      <workItem from="1730206451047" duration="499000" />
+      <workItem from="1730206955377" duration="5504000" />
+      <workItem from="1730213184325" duration="2170000" />
+      <workItem from="1730252798801" duration="176000" />
+      <workItem from="1730253021739" duration="859000" />
+      <workItem from="1730253897230" duration="975000" />
+      <workItem from="1730255039117" duration="4396000" />
+      <workItem from="1730260576253" duration="24000" />
+      <workItem from="1730260617403" duration="22000" />
+      <workItem from="1730260691618" duration="11000" />
+      <workItem from="1730262082509" duration="249000" />
+      <workItem from="1730268102752" duration="3707000" />
+      <workItem from="1730271841539" duration="306000" />
+      <workItem from="1730272320905" duration="8040000" />
+      <workItem from="1730281330806" duration="775000" />
+      <workItem from="1730289291812" duration="3000" />
+      <workItem from="1730291211104" duration="4589000" />
+      <workItem from="1730300182908" duration="1000" />
+      <workItem from="1730340749738" duration="3561000" />
+      <workItem from="1730365735971" duration="8917000" />
+      <workItem from="1730435371363" duration="90000" />
+      <workItem from="1730435479227" duration="5229000" />
+      <workItem from="1730454530443" duration="17184000" />
+      <workItem from="1730542068463" duration="6999000" />
+      <workItem from="1730599356065" duration="41000" />
+      <workItem from="1730689672545" duration="1724000" />
+      <workItem from="1730702584706" duration="845000" />
+      <workItem from="1730771007522" duration="22339000" />
+      <workItem from="1730851879742" duration="29820000" />
+      <workItem from="1730943506445" duration="6735000" />
+      <workItem from="1731032829157" duration="19754000" />
+      <workItem from="1731135656283" duration="4673000" />
+      <workItem from="1731249227725" duration="33719000" />
+      <workItem from="1731376287279" duration="19444000" />
+      <workItem from="1731565943304" duration="12028000" />
+      <workItem from="1731678911856" duration="299000" />
+      <workItem from="1731831183487" duration="689000" />
+      <workItem from="1732190772241" duration="1473000" />
+      <workItem from="1732194366195" duration="728000" />
+      <workItem from="1732195117828" duration="1981000" />
+      <workItem from="1732197105374" duration="3383000" />
+      <workItem from="1732200496614" duration="1501000" />
+      <workItem from="1733021652995" duration="3310000" />
+      <workItem from="1733027961871" duration="96000" />
+      <workItem from="1733056247807" duration="6435000" />
+      <workItem from="1733109350429" duration="189000" />
+      <workItem from="1733110426682" duration="68000" />
+      <workItem from="1733141578336" duration="1629000" />
+      <workItem from="1733148835393" duration="378000" />
+      <workItem from="1733149226220" duration="2436000" />
+      <workItem from="1733208431984" duration="356000" />
+      <workItem from="1733208800895" duration="3653000" />
+      <workItem from="1733213896192" duration="7137000" />
+      <workItem from="1733276813104" duration="6000" />
+      <workItem from="1733278185046" duration="6939000" />
+      <workItem from="1733539928823" duration="2342000" />
+      <workItem from="1733553461264" duration="248000" />
+      <workItem from="1733553714484" duration="4659000" />
+      <workItem from="1733559817480" duration="9117000" />
+      <workItem from="1733988239406" duration="13405000" />
+      <workItem from="1733976161533" duration="4572000" />
+      <workItem from="1734055059316" duration="6000" />
+      <workItem from="1734084191445" duration="8318000" />
+      <workItem from="1734093972785" duration="1633000" />
+      <workItem from="1734147820972" duration="9270000" />
+      <workItem from="1734171852283" duration="17094000" />
+      <workItem from="1734227719243" duration="18266000" />
+      <workItem from="1734250167841" duration="10811000" />
+      <workItem from="1734237394404" duration="4611000" />
+      <workItem from="1734271336330" duration="1434000" />
+      <workItem from="1734354241414" duration="630000" />
+      <workItem from="1734359364588" duration="124000" />
+      <workItem from="1734362127850" duration="274000" />
+      <workItem from="1734425561671" duration="278000" />
+      <workItem from="1734600046039" duration="1436000" />
+      <workItem from="1734608680907" duration="974000" />
+      <workItem from="1734609840979" duration="10900000" />
+      <workItem from="1734658401173" duration="18403000" />
+      <workItem from="1734747777094" duration="1872000" />
+      <workItem from="1734753660855" duration="712000" />
+      <workItem from="1734762099774" duration="1433000" />
+      <workItem from="1734835577190" duration="780000" />
+      <workItem from="1734840835120" duration="24000" />
+      <workItem from="1734840874539" duration="8399000" />
+      <workItem from="1734872644319" duration="109000" />
+      <workItem from="1734873266574" duration="1028000" />
+      <workItem from="1734875958821" duration="5941000" />
+      <workItem from="1734918073045" duration="30258000" />
+      <workItem from="1734961983267" duration="2960000" />
+      <workItem from="1735093639644" duration="4211000" />
+      <workItem from="1735184380071" duration="4564000" />
+      <workItem from="1735200704066" duration="6234000" />
+      <workItem from="1735221431378" duration="6190000" />
+      <workItem from="1735281673174" duration="2909000" />
+      <workItem from="1735300016412" duration="368000" />
+      <workItem from="1735300512039" duration="10811000" />
+      <workItem from="1735352782482" duration="13383000" />
+      <workItem from="1735397603907" duration="53000" />
+      <workItem from="1735438581117" duration="38000" />
+      <workItem from="1735442899534" duration="28250000" />
+      <workItem from="1735524170209" duration="1000" />
+      <workItem from="1735527778277" duration="10495000" />
+      <workItem from="1735549823557" duration="40000" />
+      <workItem from="1735550113017" duration="18398000" />
+      <workItem from="1736146192263" duration="8434000" />
+      <workItem from="1736215141023" duration="2128000" />
+      <workItem from="1736217356427" duration="11270000" />
+      <workItem from="1736250562197" duration="1679000" />
+      <workItem from="1736303346477" duration="6060000" />
+      <workItem from="1736317074909" duration="3505000" />
+      <workItem from="1736334470440" duration="1219000" />
+      <workItem from="1736341483801" duration="3285000" />
+      <workItem from="1736344876395" duration="4780000" />
+      <workItem from="1736387869104" duration="3975000" />
+      <workItem from="1736392131798" duration="284000" />
+      <workItem from="1736401455242" duration="1814000" />
+      <workItem from="1736375148151" duration="8000" />
+      <workItem from="1736412694350" duration="7086000" />
+      <workItem from="1736496910859" duration="7088000" />
+      <workItem from="1736564392652" duration="198000" />
+      <workItem from="1736564625335" duration="21248000" />
+      <workItem from="1736650838402" duration="34806000" />
+      <workItem from="1736733872445" duration="36000" />
+      <workItem from="1736734344759" duration="5916000" />
+      <workItem from="1736741181097" duration="33000" />
+      <workItem from="1736745806584" duration="1000000" />
+      <workItem from="1736747927946" duration="350000" />
+      <workItem from="1736748486656" duration="12000" />
+      <workItem from="1736748615666" duration="47000" />
+      <workItem from="1736748797240" duration="2373000" />
+      <workItem from="1736751533834" duration="207000" />
+      <workItem from="1736751890711" duration="94000" />
+      <workItem from="1736752004984" duration="77000" />
+      <workItem from="1736752201786" duration="11490000" />
+      <workItem from="1736741864442" duration="354000" />
+      <workItem from="1736742232377" duration="704000" />
+      <workItem from="1736742968730" duration="12000" />
+      <workItem from="1740620915676" duration="1189000" />
+      <workItem from="1740729898270" duration="1390000" />
+      <workItem from="1740832683783" duration="4958000" />
+      <workItem from="1740838299708" duration="511000" />
+      <workItem from="1740838841802" duration="37000" />
+      <workItem from="1740838882643" duration="112000" />
+      <workItem from="1740838999523" duration="1006000" />
+      <workItem from="1740897798082" duration="480000" />
+      <workItem from="1740898325200" duration="19364000" />
+      <workItem from="1741064693318" duration="6164000" />
+      <workItem from="1741403668780" duration="26810000" />
+      <workItem from="1741486847655" duration="7403000" />
+      <workItem from="1742213089618" duration="2252000" />
+      <workItem from="1742216421309" duration="355000" />
+      <workItem from="1742217122172" duration="7000" />
+      <workItem from="1742217258182" duration="633000" />
+    </task>
+    <task id="LOCAL-00001" summary="simd-aware-PGM">
+      <option name="closed" value="true" />
+      <created>1733213644029</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1733213644029</updated>
+    </task>
+    <task id="LOCAL-00002" summary="simd-aware">
+      <option name="closed" value="true" />
+      <created>1733213866314</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1733213866314</updated>
+    </task>
+    <task id="LOCAL-00003" summary="simd-aware">
+      <option name="closed" value="true" />
+      <created>1733213869024</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1733213869024</updated>
+    </task>
+    <task id="LOCAL-00004" summary="simd-aware">
+      <option name="closed" value="true" />
+      <created>1733213875728</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1733213875729</updated>
+    </task>
+    <task id="LOCAL-00005" summary="simd-aware">
+      <option name="closed" value="true" />
+      <created>1733285428791</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1733285428791</updated>
+    </task>
+    <task id="LOCAL-00006" summary="simd-aware">
+      <option name="closed" value="true" />
+      <created>1734609364891</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1734609364891</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="UnknownFeatures">
+    <option featureType="com.intellij.fileTypeFactory" implementationName="*.bat" />
+  </component>
+  <component name="VCPKGProject">
+    <isAutomaticCheckingOnLaunch value="false" />
+    <isAutomaticFoundErrors value="true" />
+    <isAutomaticReloadCMake value="true" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="simd-aware-PGM" />
+    <MESSAGE value="simd-aware" />
+    <option name="LAST_COMMIT_MESSAGE" value="simd-aware" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/test.cpp</url>
+          <line>51</line>
+          <option name="timeStamp" value="2" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+</project>

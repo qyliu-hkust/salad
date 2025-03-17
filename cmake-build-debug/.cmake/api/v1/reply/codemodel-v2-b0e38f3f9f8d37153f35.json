@@ -1,0 +1,87 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"jsonFile" : "directory-.-Debug-f5ebdc15457944623624.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "PGM",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "pgm_build::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-pgm_build-Debug-f9d8c540b9284a366ebe.json",
+					"name" : "pgm_build",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "pgm_decode::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-pgm_decode-Debug-b6f9f5e5d4d0b34ce74b.json",
+					"name" : "pgm_decode",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "pgm_query::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-pgm_query-Debug-adbca7acd1698ba8d6dc.json",
+					"name" : "pgm_query",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "test::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-test-Debug-d336828bfcaeabd66437.json",
+					"name" : "test",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/media/sirius/Application/Codes/Cpp/Baselines/pgm_index/cmake-build-debug",
+		"source" : "/media/sirius/Application/Codes/Cpp/Baselines/pgm_index"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 7
+	}
+}

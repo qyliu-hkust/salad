@@ -352,6 +352,7 @@ namespace pgm_sequence {
                     uint32_t equal_result = 0;
                     uint32_t candidate_posting_tmp = 0;
                     std::vector<K> intercection_result(index_sequences[0].n + 1);
+                    std::vector<K> intercection_result_tmp(index_sequences[0].n + 1);
 
                     auto start = std::chrono::high_resolution_clock::now();
                     if (query.size() == 2) {
@@ -362,21 +363,19 @@ namespace pgm_sequence {
                     } else {
                         for (int i = 0; i < 2; i++) {
                             index_sequences[i].decode_query(decode_type);
-
                         }
-                        equal_result = intersect_u32_simd(index_sequences[0].current_value_vector.data(), index_sequences[1].current_value_vector.data(), index_sequences[0].n, index_sequences[1].n, intercection_result.data());
+                        equal_result = intersect_u32_simd(index_sequences[0].current_value_vector.data(), index_sequences[1].current_value_vector.data(), index_sequences[0].n, index_sequences[1].n, intercection_result_tmp.data());
 
                         for (int i = 2; i < branch_num; i++) {
                             index_sequences[i].decode_query(decode_type);
                         }
-                        equal_result = intersect_u32_simd(intercection_result.data(), index_sequences[2].current_value_vector.data(), equal_result, index_sequences[2].n, intercection_result.data());
+                        equal_result = intersect_u32_simd(intercection_result_tmp.data(), index_sequences[2].current_value_vector.data(), equal_result, index_sequences[2].n, intercection_result.data());
 
                         if (index_sequences.size() > branch_num) {
                             uint32_t intersection_length = equal_result;
                             equal_result = 0;
                             uint32_t intersection_idx = 0;
                             while (intersection_idx < intersection_length) {
-
                                 candidate_posting = intercection_result[intersection_idx];
                                 for (query_id_idx = 3; query_id_idx < index_sequences.size(); query_id_idx++) {
                                     candidate_posting_tmp = index_sequences[query_id_idx].nextgeq(candidate_posting);
@@ -438,7 +437,7 @@ namespace pgm_sequence {
 
                     uint64_t union_size = 0;
                     for (int i = 0; i < query.size(); i++) {
-                        index_sequences[i].query_init(decode_type, "intersection");
+                        index_sequences[i].query_init(decode_type, "union");
                         union_size += index_sequences[i].n;
                     }
 
@@ -446,31 +445,42 @@ namespace pgm_sequence {
                     //     index_sequences[i].warm_up();
                     // }
 
-                    // uint32_t query_id_idx = 0;
-                    // uint32_t candidate_posting = 0;
                     uint64_t equal_result = 0;
-                    // uint32_t candidate_posting_tmp = 0;
-                    std::vector<K> union_result(union_size);
+                    std::vector<K> union_result_1(union_size);
+                    std::vector<K> union_result_2(union_size);
+
+                    K *union_result_p1 = union_result_1.data(), *union_result_p2 = union_result_2.data(), *union_result_tmp;
 
                     auto start = std::chrono::high_resolution_clock::now();
                     if (query.size() == 2) {
                         for (auto &enumerator : index_sequences) {
                             enumerator.decode_query(decode_type);
                         }
-                        // cerr << "Decode finished" << endl;
-                        // equal_result = union_u32_normal(index_sequences[0].current_value_vector.data(), index_sequences[1].current_value_vector.data(), index_sequences[0].n, index_sequences[1].n, union_result.data());
-                        equal_result = union_u32_simd(index_sequences[0].current_value_vector.data(), index_sequences[1].current_value_vector.data(), index_sequences[0].n, index_sequences[1].n, union_result.data());
+                        equal_result = union_u32_normal(index_sequences[0].current_value_vector.data(), index_sequences[1].current_value_vector.data(), index_sequences[0].n, index_sequences[1].n, union_result_p1);
+                        // equal_result = union_u32_simd(index_sequences[0].current_value_vector.data(), index_sequences[1].current_value_vector.data(), index_sequences[0].n, index_sequences[1].n, union_result_p1);
+
+                        // end_union_result = std::set_union(index_sequences[0].current_value_vector.data(), index_sequences[0].current_value_vector.data()+index_sequences[0].n, index_sequences[1].current_value_vector.data(), index_sequences[1].current_value_vector.data()+index_sequences[1].n, start_union_result);
+                        // equal_result = end_union_result - start_union_result;
+
                     } else {
                         for (int i = 0; i < 2; i++) {
                             index_sequences[i].decode_query(decode_type);
                         }
-                        // cerr << "Decode finished" << endl;
-                        // equal_result = union_u32_normal(index_sequences[0].current_value_vector.data(), index_sequences[1].current_value_vector.data(), index_sequences[0].n, index_sequences[1].n, union_result.data());
-                        equal_result = union_u32_simd(index_sequences[0].current_value_vector.data(), index_sequences[1].current_value_vector.data(), index_sequences[0].n, index_sequences[1].n, union_result.data());
+                        equal_result = union_u32_normal(index_sequences[0].current_value_vector.data(), index_sequences[1].current_value_vector.data(), index_sequences[0].n, index_sequences[1].n, union_result_p1);
+                        // equal_result = union_u32_simd(index_sequences[0].current_value_vector.data(), index_sequences[1].current_value_vector.data(), index_sequences[0].n, index_sequences[1].n, union_result_p1);
+
+                        // end_union_result = std::set_union(index_sequences[0].current_value_vector.data(), index_sequences[0].current_value_vector.data()+index_sequences[0].n, index_sequences[1].current_value_vector.data(), index_sequences[1].current_value_vector.data()+index_sequences[1].n, start_union_result);
+                        // equal_result = end_union_result - start_union_result;
                         for (int i = 2; i < query.size(); i++) {
                             index_sequences[i].decode_query(decode_type);
-                            // equal_result = union_u32_normal(union_result.data(), index_sequences[i].current_value_vector.data(), equal_result, index_sequences[i].n, union_result.data());
-                            equal_result = union_u32_simd(union_result.data(), index_sequences[i].current_value_vector.data(), equal_result, index_sequences[i].n, union_result.data());
+                            equal_result = union_u32_normal(union_result_p1, index_sequences[i].current_value_vector.data(), equal_result, index_sequences[i].n, union_result_p2);
+                            // equal_result = union_u32_simd(union_result_p1, index_sequences[i].current_value_vector.data(), equal_result, index_sequences[i].n, union_result_p2);
+                            union_result_tmp = union_result_p1;
+                            union_result_p1 = union_result_p2;
+                            union_result_p2 = union_result_tmp;
+                            // equal_result = union_u32_simd(union_result.data(), index_sequences[i].current_value_vector.data(), equal_result, index_sequences[i].n, union_result.data());
+                            // end_union_result = std::set_union(start_union_result, start_union_result + equal_result, index_sequences[i].current_value_vector.data(), index_sequences[i].current_value_vector.data()+index_sequences[i].n, start_union_result);
+                            // equal_result = end_union_result - start_union_result;
                         }
                     }
                     auto end = std::chrono::high_resolution_clock::now();

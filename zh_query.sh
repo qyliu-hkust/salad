@@ -38,13 +38,13 @@ mkdir -p $result_dir/index/$dataset/$index_type/$dataset-$index_type-$epsilon/
 #"cw12b-1M" "ccnews-1M" "rb04-4096"
 for dataset in "cw12b-1M"
 do
-  for query_type in "OR"
+  for query_type in "AND"
   do
     for query_num in 5 4 3 2
     do
       for epsilon in 1
       do
-        for decode_type in "normal"
+        for decode_type in "simd"
         do
           echo "————————————dataset : $dataset epsilon: $epsilon query_type: $query_type query_num: $query_num decode_type: $decode_type————————————"
           for repeat in 1

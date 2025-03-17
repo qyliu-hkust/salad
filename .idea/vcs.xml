@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="VcsDirectoryMappings">
+    <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/external/FastPFor" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/external/FastPFor/build/googletest-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/external/SIMDSetOperations" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/external/avx-512-sort" vcs="Git" />
+  </component>
+</project>

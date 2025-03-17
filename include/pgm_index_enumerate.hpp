@@ -85,18 +85,16 @@ namespace pgm_sequence {
                     current_pos = 0;
                     current_segment = 0;
                     current_value = INT_MAX - 1;
+                    total_skip = 0;
+                    current_value_vector.resize(n);
                 }
             } else if (decode_type == "simd") {
-                if (query_type == "intersection") {
-                    current_pos = 0;
-                    current_segment = 0;
-                    current_value_vector.resize(n);
-                    simd_init();
-                    vector<Correction_Value> ().swap(corrections_vector);
-                    vector<segment> ().swap(segments);
-                } else if (query_type == "union") {
-
-                }
+                current_pos = 0;
+                current_segment = 0;
+                current_value_vector.resize(n);
+                simd_init();
+                vector<Correction_Value> ().swap(corrections_vector);
+                vector<segment> ().swap(segments);
             }
         }
 
@@ -236,7 +234,6 @@ namespace pgm_sequence {
         void normal_decode_query() {
             uint32_t pointer = 0;
             for (auto it = segments.begin(); it < std::prev(segments.end()); ++it) {
-                auto first = it -> first;
                 auto intercept = it -> intercept;
                 auto exponent = it -> slope_exponent;
                 auto significand = it -> slope_significand;
@@ -656,6 +653,7 @@ namespace pgm_sequence {
                     //     *first_pointer[first_idx]++ = result_int32[k++];
                     //     *first_pointer[first_idx]++ = result_int32[k++];
                     // }
+                    // _mm512_i32scatter_epi32
 
                     for (uint8_t k = 0; k < 8; k++) {
                         *first_pointer[k]++ = result_int32[k];
@@ -706,25 +704,194 @@ namespace pgm_sequence {
             return output;
         }
 
+        // void simd_decode_512i_query(){
+        //     Correction_Value correct_pointers = -1;
+        //     alignas(64) Correction_Value *result_int32 = aligned_new<Correction_Value>(16);
+        //     __m512i rerange_idx = _mm512_set_epi32(15, 7, 14, 6, 13, 5, 12, 4, 11, 3, 10, 2, 9, 1, 8, 0);
+        //     std::array<Covered_Value*, 8> first_pointer;
+        //     for (int i = 0; i < slope_significand_simd.size(); i++) { // the slope is int64_t, the corrections and intercept are int32_t, we should align them
+        //
+        //         const Covered_Value cover_length_tmp = cover_length[i];
+        //         Covered_Value *const cover_tmp = covered_simd[i];
+        //         Covered_Value  *const first_tmp = first_simd[i];
+        //
+        //         first_pointer[0] = current_value_vector.data() + first_tmp[0];
+        //         first_pointer[1] = current_value_vector.data() + first_tmp[1];
+        //         first_pointer[2] = current_value_vector.data() + first_tmp[2];
+        //         first_pointer[3] = current_value_vector.data() + first_tmp[3];
+        //         first_pointer[4] = current_value_vector.data() + first_tmp[4];
+        //         first_pointer[5] = current_value_vector.data() + first_tmp[5];
+        //         first_pointer[6] = current_value_vector.data() + first_tmp[6];
+        //         first_pointer[7] = current_value_vector.data() + first_tmp[7];
+        //
+        //         const __m512i slope_significand_v_tmp = _mm512_load_epi64(slope_significand_simd[i]);
+        //         __m512i slope_significand_v = slope_significand_v_tmp;
+        //         const __m512i slope_exponent_v = _mm512_load_epi64(slope_exponent_simd[i]);
+        //         __m512i slope_correct_v = _mm512_srlv_epi64(slope_significand_v, slope_exponent_v);
+        //
+        //         __m256i int32_v = _mm256_setzero_si256();
+        //         __m512i result_v = _mm512_castsi256_si512(int32_v);
+        //         int32_v = _mm512_cvtepi64_epi32(slope_correct_v);
+        //         result_v = _mm512_inserti64x4(result_v, int32_v, 1);
+        //
+        //         const __m512i intercept_v = _mm512_load_epi32(intercept_simd[i]);
+        //         Correction_Value *corrections_p = corrections_simd[i];
+        //         __m512i corrections_v = _mm512_load_epi32(corrections_p);
+        //
+        //         result_v = _mm512_add_epi32(result_v, intercept_v);
+        //         result_v = _mm512_add_epi32(result_v, corrections_v);
+        //
+        //         result_v = _mm512_permutexvar_epi32(rerange_idx, result_v);
+        //
+        //         _mm512_store_epi32(result_int32, result_v); // save the data
+        //         // for (uint8_t k = 0; k < 8; k++) {
+        //         //     *first_pointer[k]++ = result_int32[k];
+        //         // }
+        //         // for (uint8_t k = 8, first_idx = 0; first_idx < 8; first_idx++) {
+        //         //     *first_pointer[first_idx]++ = result_int32[k++];
+        //         // }
+        //         *first_pointer[0]++ = result_int32[0];
+        //         *first_pointer[0]++ = result_int32[1];
+        //         *first_pointer[1]++ = result_int32[2];
+        //         *first_pointer[1]++ = result_int32[3];
+        //         *first_pointer[2]++ = result_int32[4];
+        //         *first_pointer[2]++ = result_int32[5];
+        //         *first_pointer[3]++ = result_int32[6];
+        //         *first_pointer[3]++ = result_int32[7];
+        //         *first_pointer[4]++ = result_int32[8];
+        //         *first_pointer[4]++ = result_int32[9];
+        //         *first_pointer[5]++ = result_int32[10];
+        //         *first_pointer[5]++ = result_int32[11];
+        //         *first_pointer[6]++ = result_int32[12];
+        //         *first_pointer[6]++ = result_int32[13];
+        //         *first_pointer[7]++ = result_int32[14];
+        //         *first_pointer[7]++ = result_int32[15];
+        //
+        //         // *first_pointer[0]++ = result_int32[0];
+        //         // *first_pointer[0]++ = result_int32[8];
+        //         // *first_pointer[1]++ = result_int32[1];
+        //         // *first_pointer[1]++ = result_int32[9];
+        //         // *first_pointer[2]++ = result_int32[2];
+        //         // *first_pointer[2]++ = result_int32[10];
+        //         // *first_pointer[3]++ = result_int32[3];
+        //         // *first_pointer[3]++ = result_int32[11];
+        //         // *first_pointer[4]++ = result_int32[4];
+        //         // *first_pointer[4]++ = result_int32[12];
+        //         // *first_pointer[5]++ = result_int32[5];
+        //         // *first_pointer[5]++ = result_int32[13];
+        //         // *first_pointer[6]++ = result_int32[6];
+        //         // *first_pointer[6]++ = result_int32[14];
+        //         // *first_pointer[7]++ = result_int32[7];
+        //         // *first_pointer[7]++ = result_int32[15];
+        //
+        //
+        //         // for (uint8_t k = 0, first_idx = 0; first_idx < 8; first_idx++) {
+        //         //     *first_pointer[first_idx]++ = result_int32[k++];
+        //         //     *first_pointer[first_idx]++ = result_int32[k++];
+        //         // }
+        //
+        //         for (Covered_Value j = 2; j < cover_length_tmp; j= j + 2) {
+        //             slope_significand_v = _mm512_add_epi64(slope_significand_v, slope_significand_v_tmp);
+        //             slope_correct_v = _mm512_srlv_epi64(slope_significand_v, slope_exponent_v);
+        //             int32_v = _mm512_cvtepi64_epi32(slope_correct_v);
+        //             result_v = _mm512_castsi256_si512(int32_v);
+        //
+        //             slope_significand_v = _mm512_add_epi64(slope_significand_v, slope_significand_v_tmp);
+        //             slope_correct_v = _mm512_srlv_epi64(slope_significand_v, slope_exponent_v);
+        //             int32_v = _mm512_cvtepi64_epi32(slope_correct_v);
+        //             result_v = _mm512_inserti64x4(result_v, int32_v, 1);
+        //
+        //             result_v = _mm512_add_epi32(result_v , intercept_v);
+        //
+        //             corrections_p += 16;
+        //             corrections_v = _mm512_load_epi32(corrections_p);
+        //             result_v = _mm512_add_epi32(result_v, corrections_v);
+        //
+        //             result_v = _mm512_permutexvar_epi32(rerange_idx, result_v);
+        //
+        //             _mm512_store_epi32(result_int32, result_v);
+        //             *first_pointer[0]++ = result_int32[0];
+        //             *first_pointer[0]++ = result_int32[1];
+        //             *first_pointer[1]++ = result_int32[2];
+        //             *first_pointer[1]++ = result_int32[3];
+        //             *first_pointer[2]++ = result_int32[4];
+        //             *first_pointer[2]++ = result_int32[5];
+        //             *first_pointer[3]++ = result_int32[6];
+        //             *first_pointer[3]++ = result_int32[7];
+        //             *first_pointer[4]++ = result_int32[8];
+        //             *first_pointer[4]++ = result_int32[9];
+        //             *first_pointer[5]++ = result_int32[10];
+        //             *first_pointer[5]++ = result_int32[11];
+        //             *first_pointer[6]++ = result_int32[12];
+        //             *first_pointer[6]++ = result_int32[13];
+        //             *first_pointer[7]++ = result_int32[14];
+        //             *first_pointer[7]++ = result_int32[15];
+        //
+        //             // *first_pointer[0]++ = result_int32[0];
+        //             // *first_pointer[0]++ = result_int32[8];
+        //             // *first_pointer[1]++ = result_int32[1];
+        //             // *first_pointer[1]++ = result_int32[9];
+        //             // *first_pointer[2]++ = result_int32[2];
+        //             // *first_pointer[2]++ = result_int32[10];
+        //             // *first_pointer[3]++ = result_int32[3];
+        //             // *first_pointer[3]++ = result_int32[11];
+        //             // *first_pointer[4]++ = result_int32[4];
+        //             // *first_pointer[4]++ = result_int32[12];
+        //             // *first_pointer[5]++ = result_int32[5];
+        //             // *first_pointer[5]++ = result_int32[13];
+        //             // *first_pointer[6]++ = result_int32[6];
+        //             // *first_pointer[6]++ = result_int32[14];
+        //             // *first_pointer[7]++ = result_int32[7];
+        //             // *first_pointer[7]++ = result_int32[15];
+        //
+        //         }
+        //
+        //         for (Covered_Value k = 0; k < 8; k++) {
+        //             const Covered_Value covered = cover_tmp[k];
+        //             if (cover_length_tmp < covered) {
+        //                 const Simd_Value slope_significand = slope_significand_simd[i][k];
+        //                 const Simd_Value slope_exponent = slope_exponent_simd[i][k];
+        //                 const Intercept_Value intercept = intercept_simd[i][k];
+        //                 for (Covered_Value pos = cover_length_tmp; pos < covered; pos++)
+        //                     *first_pointer[k]++ = ((slope_significand * pos) >> slope_exponent) + intercept + corrections_vector_residual[++correct_pointers];
+        //                         // current_value_vector[first_tmp[k] + pos] = ((slope_significand * pos) >> slope_exponent) + intercept + corrections_vector_residual[++correct_pointers];
+        //             }
+        //         }
+        //     }
+        //
+        //     const auto end_iter = std::prev(segments_sort.end());
+        //     for (auto it = segments_sort.begin() + idx; it < end_iter; ++it) {
+        //         const auto& seg = *it;
+        //         K* dst = current_value_vector.data() + seg.first;
+        //         for (Covered_Value pos = 0; pos < seg.covered; ++pos) {
+        //             dst[pos] = ((seg.slope_significand * pos) >> seg.slope_exponent) + seg.intercept + corrections_vector_residual[++correct_pointers];
+        //         }
+        //     }
+        // }
+
         void simd_decode_512i_query(){
             Correction_Value correct_pointers = -1;
-            std::vector<Covered_Value*> first_pointer(8);
-            alignas(align_val) Correction_Value *result_int32 = aligned_new<Correction_Value>(16);
-            // __m512i rerange_idx = _mm512_set_epi32(15, 7, 14, 6, 13, 5, 12, 4, 11, 3, 10, 2, 9, 1, 8, 0);
+            alignas(64) Correction_Value *result_int32 = aligned_new<Correction_Value>(16);
+            std::array<K*, 8> first_pointer;
+            __m512i rerange_idx = _mm512_set_epi32(15, 7, 14, 6, 13, 5, 12, 4, 11, 3, 10, 2, 9, 1, 8, 0);
             for (int i = 0; i < slope_significand_simd.size(); i++) { // the slope is int64_t, the corrections and intercept are int32_t, we should align them
 
-                Covered_Value cover_length_tmp = cover_length[i];
-                Covered_Value *cover_tmp = covered_simd[i];
-                Covered_Value  *first_tmp = first_simd[i];
-                for (Covered_Value k = 0; k < 8; k++) {
-                    first_pointer[k] = current_value_vector.data() + first_tmp[k];
-                    // first_pointer[k + 8] = current_value_vector.data() + first_tmp[k] + 1;
-                }
+                const Covered_Value cover_length_tmp = cover_length[i];
+                Covered_Value *const cover_tmp = covered_simd[i];
+                Covered_Value  *const first_tmp = first_simd[i];
 
+                first_pointer[0] = current_value_vector.data() + first_tmp[0];
+                first_pointer[1] = current_value_vector.data() + first_tmp[1];
+                first_pointer[2] = current_value_vector.data() + first_tmp[2];
+                first_pointer[3] = current_value_vector.data() + first_tmp[3];
+                first_pointer[4] = current_value_vector.data() + first_tmp[4];
+                first_pointer[5] = current_value_vector.data() + first_tmp[5];
+                first_pointer[6] = current_value_vector.data() + first_tmp[6];
+                first_pointer[7] = current_value_vector.data() + first_tmp[7];
 
-                __m512i slope_significand_v_tmp = _mm512_load_epi64(slope_significand_simd[i]);
+                const __m512i slope_significand_v_tmp = _mm512_load_epi64(slope_significand_simd[i]);
                 __m512i slope_significand_v = slope_significand_v_tmp;
-                __m512i slope_exponent_v = _mm512_load_epi64(slope_exponent_simd[i]);
+                const __m512i slope_exponent_v = _mm512_load_epi64(slope_exponent_simd[i]);
                 __m512i slope_correct_v = _mm512_srlv_epi64(slope_significand_v, slope_exponent_v);
 
                 __m256i int32_v = _mm256_setzero_si256();
@@ -732,27 +899,55 @@ namespace pgm_sequence {
                 int32_v = _mm512_cvtepi64_epi32(slope_correct_v);
                 result_v = _mm512_inserti64x4(result_v, int32_v, 1);
 
-                __m512i intercept_v = _mm512_load_epi32(intercept_simd[i]);
+                const __m512i intercept_v = _mm512_load_epi32(intercept_simd[i]);
                 Correction_Value *corrections_p = corrections_simd[i];
                 __m512i corrections_v = _mm512_load_epi32(corrections_p);
 
                 result_v = _mm512_add_epi32(result_v, intercept_v);
                 result_v = _mm512_add_epi32(result_v, corrections_v);
-                // result_v = _mm512_permutexvar_epi32(rerange_idx, result_v);
 
-                _mm512_store_epi32(result_int32, result_v); // save the data
+                result_v = _mm512_permutexvar_epi32(rerange_idx, result_v);
 
-                for (uint8_t k = 0; k < 8; k++) {
-                    *first_pointer[k]++ = result_int32[k];
-                    // *first_pointer[k]++ = result_int32[k + 8];
-                }
-                for (uint8_t k = 8, first_idx = 0; first_idx < 8; first_idx++) {
-                    *first_pointer[first_idx]++ = result_int32[k++];
-                }
-                // for (uint8_t k = 0, first_idx = 0; first_idx < 8; first_idx++) {
-                //     *first_pointer[first_idx]++ = result_int32[k++];
-                //     *first_pointer[first_idx]++ = result_int32[k++];
-                // }
+                __m128i t0 = _mm512_extracti32x4_epi32(result_v, 0);
+                __m128i t1 = _mm512_extracti32x4_epi32(result_v, 1);
+                __m128i t2 = _mm512_extracti32x4_epi32(result_v, 2);
+                __m128i t3 = _mm512_extracti32x4_epi32(result_v, 3);
+
+                // 对每个 128 位块进行 shuffle 和存储
+                __m128i t0_shuffled = _mm_shuffle_epi32(t0, _MM_SHUFFLE(3, 2, 3, 2));
+                __m128i t1_shuffled = _mm_shuffle_epi32(t1, _MM_SHUFFLE(3, 2, 3, 2));
+                __m128i t2_shuffled = _mm_shuffle_epi32(t2, _MM_SHUFFLE(3, 2, 3, 2));
+                __m128i t3_shuffled = _mm_shuffle_epi32(t3, _MM_SHUFFLE(3, 2, 3, 2));
+
+                // 合并存储操作
+                _mm_storel_epi64((__m128i*)first_pointer[0], t0);
+                _mm_storel_epi64((__m128i*)first_pointer[1], t0_shuffled);
+                _mm_storel_epi64((__m128i*)first_pointer[2], t1);
+                _mm_storel_epi64((__m128i*)first_pointer[3], t1_shuffled);
+                _mm_storel_epi64((__m128i*)first_pointer[4], t2);
+                _mm_storel_epi64((__m128i*)first_pointer[5], t2_shuffled);
+                _mm_storel_epi64((__m128i*)first_pointer[6], t3);
+                _mm_storel_epi64((__m128i*)first_pointer[7], t3_shuffled);
+
+
+                // _mm_storel_epi64((__m128i*)first_pointer[0], t0);
+                // _mm_storel_epi64((__m128i*)first_pointer[1], _mm_shuffle_epi32(t0, _MM_SHUFFLE(3, 2, 3, 2)));
+                // _mm_storel_epi64((__m128i*)first_pointer[2], t1);
+                // _mm_storel_epi64((__m128i*)first_pointer[3], _mm_shuffle_epi32(t1, _MM_SHUFFLE(3, 2, 3, 2)));
+                // _mm_storel_epi64((__m128i*)first_pointer[4], t2);
+                // _mm_storel_epi64((__m128i*)first_pointer[5], _mm_shuffle_epi32(t2, _MM_SHUFFLE(3, 2, 3, 2)));
+                // _mm_storel_epi64((__m128i*)first_pointer[6], t3);
+                // _mm_storel_epi64((__m128i*)first_pointer[7], _mm_shuffle_epi32(t3, _MM_SHUFFLE(3, 2, 3, 2)));
+
+
+                first_pointer[0] += 2;
+                first_pointer[1] += 2;
+                first_pointer[2] += 2;
+                first_pointer[3] += 2;
+                first_pointer[4] += 2;
+                first_pointer[5] += 2;
+                first_pointer[6] += 2;
+                first_pointer[7] += 2;
 
                 for (Covered_Value j = 2; j < cover_length_tmp; j= j + 2) {
                     slope_significand_v = _mm512_add_epi64(slope_significand_v, slope_significand_v_tmp);
@@ -770,50 +965,69 @@ namespace pgm_sequence {
                     corrections_p += 16;
                     corrections_v = _mm512_load_epi32(corrections_p);
                     result_v = _mm512_add_epi32(result_v, corrections_v);
-                    // result_v = _mm512_permutexvar_epi32(rerange_idx, result_v);
 
-                    _mm512_store_epi32(result_int32, result_v);
+                    result_v = _mm512_permutexvar_epi32(rerange_idx, result_v);
 
-                    // for (uint8_t k = 0, first_idx = 0; first_idx < 8; first_idx++) {
-                    //     *first_pointer[first_idx]++ = result_int32[k++];
-                    //     *first_pointer[first_idx]++ = result_int32[k++];
-                    // }
-                    for (uint8_t k = 0; k < 8; k++) {
-                        *first_pointer[k]++ = result_int32[k];
-                        // *first_pointer[k]++ = result_int32[k + 8];
-                    }
-                    for (uint8_t k = 8, first_idx = 0; first_idx < 8; first_idx++) {
-                        *first_pointer[first_idx]++ = result_int32[k++];
-                    }
+                    t0 = _mm512_extracti32x4_epi32(result_v, 0);
+                    t1 = _mm512_extracti32x4_epi32(result_v, 1);
+                    t2 = _mm512_extracti32x4_epi32(result_v, 2);
+                    t3 = _mm512_extracti32x4_epi32(result_v, 3);
+
+                    t0_shuffled = _mm_shuffle_epi32(t0, _MM_SHUFFLE(3, 2, 3, 2));
+                    t1_shuffled = _mm_shuffle_epi32(t1, _MM_SHUFFLE(3, 2, 3, 2));
+                    t2_shuffled = _mm_shuffle_epi32(t2, _MM_SHUFFLE(3, 2, 3, 2));
+                    t3_shuffled = _mm_shuffle_epi32(t3, _MM_SHUFFLE(3, 2, 3, 2));
+
+                    // 合并存储操作
+                    _mm_storel_epi64((__m128i*)first_pointer[0], t0);
+                    _mm_storel_epi64((__m128i*)first_pointer[1], t0_shuffled);
+                    _mm_storel_epi64((__m128i*)first_pointer[2], t1);
+                    _mm_storel_epi64((__m128i*)first_pointer[3], t1_shuffled);
+                    _mm_storel_epi64((__m128i*)first_pointer[4], t2);
+                    _mm_storel_epi64((__m128i*)first_pointer[5], t2_shuffled);
+                    _mm_storel_epi64((__m128i*)first_pointer[6], t3);
+                    _mm_storel_epi64((__m128i*)first_pointer[7], t3_shuffled);
+
+                    // _mm_storel_epi64((__m128i*)first_pointer[0], t0);
+                    // _mm_storel_epi64((__m128i*)first_pointer[1], _mm_shuffle_epi32(t0, _MM_SHUFFLE(3, 2, 3, 2)));
+                    // _mm_storel_epi64((__m128i*)first_pointer[2], t1);
+                    // _mm_storel_epi64((__m128i*)first_pointer[3], _mm_shuffle_epi32(t1, _MM_SHUFFLE(3, 2, 3, 2)));
+                    // _mm_storel_epi64((__m128i*)first_pointer[4], t2);
+                    // _mm_storel_epi64((__m128i*)first_pointer[5], _mm_shuffle_epi32(t2, _MM_SHUFFLE(3, 2, 3, 2)));
+                    // _mm_storel_epi64((__m128i*)first_pointer[6], t3);
+                    // _mm_storel_epi64((__m128i*)first_pointer[7], _mm_shuffle_epi32(t3, _MM_SHUFFLE(3, 2, 3, 2)));
+                    first_pointer[0] += 2;
+                    first_pointer[1] += 2;
+                    first_pointer[2] += 2;
+                    first_pointer[3] += 2;
+                    first_pointer[4] += 2;
+                    first_pointer[5] += 2;
+                    first_pointer[6] += 2;
+                    first_pointer[7] += 2;
                 }
 
-                for (uint8_t k = 0; k < 8; k++) {
-                    auto covered = cover_tmp[k];
+                for (Covered_Value k = 0; k < 8; k++) {
+                    const Covered_Value covered = cover_tmp[k];
                     if (cover_length_tmp < covered) {
-                        auto slope_significand = slope_significand_simd[i][k];
-                        auto slope_exponent = slope_exponent_simd[i][k];
-                        auto intercept = intercept_simd[i][k];
+                        const Simd_Value slope_significand = slope_significand_simd[i][k];
+                        const Simd_Value slope_exponent = slope_exponent_simd[i][k];
+                        const Intercept_Value intercept = intercept_simd[i][k];
+                        // Covered_Value* dst = first_pointer[k];
                         for (Covered_Value pos = cover_length_tmp; pos < covered; pos++)
-
-                            // current_value_vector[decode_result_map.find_value(++pointers)] = ((slope_significand * pos) >> slope_exponent) + intercept + corrections_vector_residual[++correct_pointers];
-
-                        // current_value_vector[first_tmp[k] + pos] = ((slope_significand * pos) >> slope_exponent) + intercept + corrections_vector_residual[++correct_pointers];
                             *first_pointer[k]++ = ((slope_significand * pos) >> slope_exponent) + intercept + corrections_vector_residual[++correct_pointers];
+                                // *dst++ = ((slope_significand * pos) >> slope_exponent) + intercept + corrections_vector_residual[++correct_pointers];
                     }
                 }
             }
 
-            for(auto it = segments_sort.begin() + idx; it < std::prev(segments_sort.end()); it++) {
-                auto covered = it -> covered;
-                auto slope_significand = it -> slope_significand;
-                auto slope_exponent = it -> slope_exponent;
-                auto intercept = it -> intercept;
-                auto first = it -> first;
-                for (Covered_Value pos = 0; pos < covered; pos++)
-                    current_value_vector[first + pos] = ((slope_significand * pos) >> slope_exponent) + intercept + corrections_vector_residual[++correct_pointers];
-
-                // current_value_vector[it -> first + pos] = ((slope_significand * pos) >> slope_exponent) + intercept + corrections_vector_residual[++correct_pointers];
-             }
+            const auto end_iter = std::prev(segments_sort.end());
+            for (auto it = segments_sort.begin() + idx; it < end_iter; ++it) {
+                const auto& seg = *it;
+                K* dst = current_value_vector.data() + seg.first;
+                for (Covered_Value pos = 0; pos < seg.covered; ++pos) {
+                    dst[pos] = ((seg.slope_significand * pos) >> seg.slope_exponent) + seg.intercept + corrections_vector_residual[++correct_pointers];
+                }
+            }
         }
 
     };

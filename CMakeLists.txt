@@ -26,7 +26,7 @@ link_directories(${FASTPFOR_LIB_PATH})
 
 add_executable(pgm_build pgm_build.cpp)
 target_link_libraries(pgm_build sdsl FastPFOR)
-#
+
 add_executable(pgm_decode pgm_decode.cpp)
 target_link_libraries(pgm_decode sdsl)
 

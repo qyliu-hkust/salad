@@ -355,6 +355,39 @@ namespace pgm_sequence {
             }
         }
 
+        void save_residual_random_segment(const std::string output_basename) {
+            std::ofstream file(output_basename + ".random_segment_residual.txt");
+            // random select 8 index
+            std::vector<K> random_index;
+            for (K i = 0; i < 16; i++) {
+                random_index.push_back(rand() % index_sequences.size());
+            }
+            if (file.is_open()) {
+                for (auto i : random_index) {
+                    auto& variant_index = index_sequences[i];
+                    std::visit([&file](auto &index) {
+                        index.normal_init();
+                        int save_seg_idx = rand() % index.segments.size();
+                        int count = 0;
+                        for (auto segment : index.segments) {
+                            if (count == save_seg_idx) {
+                                file << segment.covered << std::endl;
+                                for (K j = 0; j < segment.covered; j++) {
+                                    file << index.corrections_vector[segment.first + j] << std::endl;
+                                }
+                                break;
+                            }
+                            count++;
+                        }
+                    }, variant_index);
+                }
+                file.close();
+            }
+            else {
+                std::cerr << "Couldn't open the log_file: " << output_basename << std::endl;
+            }
+        }
+
         void data_test(std::string input_basename) {
             // normal_init();
             std::cerr << std::endl << "Data Test Epsilon: " << epsilon << std::endl;
