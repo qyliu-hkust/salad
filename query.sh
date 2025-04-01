@@ -29,7 +29,7 @@ make -j
 
 for dataset in "cw12b-1M" "ccnews-1M"
 do
-  for query_type in "AND"
+  for query_type in "AND" "OR"
   do
     for query_num in 5 4 3 2
     do
@@ -43,6 +43,7 @@ do
             mkdir -p $result_dir/index/$dataset/$index_type/$dataset-$index_type-$epsilon/
             $code_dir/pgm_query $index_type $data_dir/$dataset/$dataset $result_dir/index/$dataset/$index_type/$dataset-$index_type-$epsilon/ $epsilon $read_only $decode_type $data_dir/$dataset/$dataset-$query_num.queries $query_type $result_dir/log/$dataset/$index_type/$dataset-$index_type-$epsilon.query-$query_num-log.txt
           done
+          echo " "
         done
       done
     done

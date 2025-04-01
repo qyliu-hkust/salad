@@ -376,7 +376,7 @@ namespace pgm_sequence {
                     uint32_t candidate_posting_tmp = 0;
                     std::vector<K> intercection_result(index_sequences[0].n + 1);
 
-                    // warm up first list
+                    // warm up the first list
                     index_sequences[0].warm_up();
 
                     auto start = std::chrono::high_resolution_clock::now();
@@ -473,6 +473,9 @@ namespace pgm_sequence {
                     std::vector<K> union_result_2(union_size);
 
                     K *union_result_p1 = union_result_1.data(), *union_result_p2 = union_result_2.data(), *union_result_tmp;
+
+                    // warm up the first list
+                    index_sequences[0].warm_up();
 
                     auto start = std::chrono::high_resolution_clock::now();
                     if (query.size() == 2) {
