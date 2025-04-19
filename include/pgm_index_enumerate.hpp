@@ -8,6 +8,46 @@
 #include "perf_event.hpp"
 
 namespace pgm_sequence {
+    template <typename T>
+    class HugePageAllocator {
+        constexpr static size_t PAGE_SIZE = 2 * 1024 * 1024; // 2MB
+    public:
+        using value_type = T;
+
+        // 构造函数和析构函数
+        HugePageAllocator() = default;
+        ~HugePageAllocator() = default;
+
+        // 分配内存
+        T* allocate(std::size_t n) {
+            const size_t size = (n * sizeof(T) + PAGE_SIZE - 1) / PAGE_SIZE * PAGE_SIZE;
+            // const size_t size = n * sizeof(T);
+            void* ptr = mmap(nullptr, size,
+                             PROT_WRITE | PROT_READ,
+                             MAP_SHARED | MAP_ANONYMOUS | MAP_HUGETLB,
+                             -1, 0);
+            // cerr << size << " " << n * sizeof(T) / 4096 << " " << ptr << endl;
+            if (ptr == MAP_FAILED) {
+                std::cerr << "Failed to allocate huge pages: " << std::strerror(errno) << std::endl;
+                throw std::bad_alloc();
+            }
+            return static_cast<T*>(ptr);
+        }
+
+        // 释放内存
+        void deallocate(T* p, std::size_t n) noexcept {
+            const size_t size = (n * sizeof(T) + PAGE_SIZE - 1) / PAGE_SIZE * PAGE_SIZE;
+            // const size_t size = n * sizeof(T);
+            if (munmap(p, size) == -1) {
+                std::cerr << "Failed to unmap huge pages: " << std::strerror(errno) << std::endl;
+            }
+        }
+
+        // 比较操作符（必须定义）
+        bool operator == (const HugePageAllocator&) const { return true; }
+        bool operator != (const HugePageAllocator&) const { return false; }
+    };
+
     template <typename K>
     class pgm_enumerator{
 
@@ -58,7 +98,8 @@ namespace pgm_sequence {
         Correction_Value current_correction = 0;
         Covered_Value current_pos = 0;
         Covered_Value current_segment = 0;
-        std::vector<K> current_value_vector;
+        std::vector<K, HugePageAllocator<K>> current_value_vector;
+        // std::vector<K> current_value_vector;
 
         K docid() {
             return current_value;
@@ -247,7 +288,8 @@ namespace pgm_sequence {
                 vector<Covered_Value*> ().swap(first_simd);
                 vector<Covered_Value*> ().swap(covered_simd);
                 vector<segment> ().swap(segments_sort);
-                vector<K> ().swap(current_value_vector);
+                // vector<K> ().swap(current_value_vector);
+                vector<K, HugePageAllocator<K>> ().swap(current_value_vector);
             }
         }
 
@@ -524,13 +566,10 @@ namespace pgm_sequence {
         uint64_t Epsilon_Data = 0;
 
         void spline_compress() {
-            // residuals_compress.resize(n);
             for (auto i = 0; i < this -> segments.size(); i++) {
                 auto seg = this -> segments[i];
                 for (auto j = seg.first + 1; j < seg.first + seg.covered - 1; j+=2) {
                     residuals_compress.push_back(liner_spline(this -> corrections_vector[j - 1], this -> corrections_vector[j + 1]) - corrections_vector[j]);
-                    // max_residual = compare_max(max_residual, abs(residuals_compress[j]));
-                    // min_residual = compare_min(min_residual, abs(residuals_compress[j]));
                 }
             }
             std::sort(residuals_compress.begin(), residuals_compress.end());
@@ -588,50 +627,6 @@ namespace pgm_sequence {
             residual_95 = residuals_compress[residuals_compress.size() / 20 * 19];
             residual_max = residuals_compress[residuals_compress.size() - 1];
         }
-
     };
-
-    // template <typename K>
-    // class pgm_residual_compressor: pgm_enumerator<K> {
-    //     typedef int32_t Correction_Value;
-    //
-    //     inline Correction_Value liner_spline(Correction_Value x1, Correction_Value x2) {
-    //         return (x1 + x2) >> 1;
-    //     }
-    //
-    //     // inline Correction_Value quadratic_spline(Correction_Value x1, x2,) {}
-    //
-    //     inline Correction_Value compare_max(Correction_Value x1, Correction_Value x2) {
-    //         return x1 > x2 ? x1 : x2;
-    //     }
-    //
-    //     inline Correction_Value compare_min(Correction_Value x1, Correction_Value x2) {
-    //         return x1 < x2 ? x1 : x2;
-    //     }
-    //
-    // public:
-    //     std::vector<Correction_Value> spline_residuals; // corrections for decode
-    //     Correction_Value max_residual = INT_MAX - 1, min_residual = INT_MIN + 1, Epsilon_Data = 0;
-    //
-    //     void load_copy(uint64_t data_size, std::vector<Correction_Value> corrections_vector) {
-    //         this -> n = data_size;
-    //         this -> corrections_vector = corrections_vector;
-    //         this -> spline_residuals.resize(data_size);
-    //     }
-    //
-    //     void spline_compress() {
-    //         for (auto i = 0; i < this -> segments.size(); i++) {
-    //             auto seg = this -> segments[i];
-    //             for (auto j = seg.first + 1; j < seg.first + seg.covered - 1; j+=2) {
-    //                 spline_residuals[j] = liner_spline(this -> corrections_vector[j - 1], this -> corrections_vector[j + 1]);
-    //                 max_residual = compare_max(max_residual, spline_residuals[j]);
-    //                 min_residual = compare_min(min_residual, spline_residuals[j]);
-    //             }
-    //         }
-    //     }
-    //
-    //     Correction_Value abs_residual() {
-    //         return abs(max_residual) > abs(min_residual) ? max_residual : min_residual;
-    //     }
-    // };
 }
+

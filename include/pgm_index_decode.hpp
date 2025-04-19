@@ -50,7 +50,8 @@ namespace pgm_sequence {
             if (decode_type == "simd") {
                 index.simd_init();
 
-                std::vector<K> result1(index.n);
+                // std::vector<K> result1(index.n);
+                std::vector<K, HugePageAllocator<K>> result1(index.n);
                 if (warm_up) {
                     for (int warm_time = 0; warm_time < 5; warm_time++) {
                         for (int i = 0; i < index.n; i ++) {
@@ -81,7 +82,7 @@ namespace pgm_sequence {
                 //     }
                 // }
 
-                std::vector<K> ().swap(result1);
+                std::vector<K, HugePageAllocator<K>> ().swap(result1);
                 total_unequal += unequal;
                 total_calculated += index.total_calculated;
                 total_calculated_add += index.total_calculated_add;
@@ -99,7 +100,8 @@ namespace pgm_sequence {
                     min_decode_time1 = index.total_duration;
                 index.free_memory(decode_type);
             } else if (decode_type == "normal") {
-                std::vector<K> result2(index.n);
+                std::vector<K, HugePageAllocator<K>> result2(index.n);
+                // std::vector<K> result2(index.n);
                 if (warm_up) {
                     for (int warm_time = 0; warm_time < 5; warm_time++) {
                         for (int i = 0; i < index.n; i ++) {
@@ -120,7 +122,8 @@ namespace pgm_sequence {
                     perf_data[i].push_back(perf_data_tmp[i]);
                 }
 
-                std::vector<K> ().swap(result2);
+                std::vector<K, HugePageAllocator<K>> ().swap(result2);
+                // std::vector<K> ().swap(result2);
                 size_tmp = index.n;
                 per_integer_time_tmp2 = index.total_duration;
                 per_integer_time_tmp2 /= size_tmp;

@@ -374,7 +374,7 @@ namespace pgm_sequence {
                     uint32_t candidate_posting = 0;
                     uint32_t equal_result = 0;
                     uint32_t candidate_posting_tmp = 0;
-                    std::vector<K> intercection_result(index_sequences[0].n + 1);
+                    std::vector<K, HugePageAllocator<K>>  intercection_result(index_sequences[0].n + 1);
 
                     // warm up the first list
                     index_sequences[0].warm_up();
@@ -469,8 +469,8 @@ namespace pgm_sequence {
                     // }
 
                     uint64_t equal_result = 0;
-                    std::vector<K> union_result_1(union_size);
-                    std::vector<K> union_result_2(union_size);
+                    std::vector<K, HugePageAllocator<K>>  union_result_1(union_size);
+                    std::vector<K, HugePageAllocator<K>>  union_result_2(union_size);
 
                     K *union_result_p1 = union_result_1.data(), *union_result_p2 = union_result_2.data(), *union_result_tmp;
 
