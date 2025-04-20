@@ -52,13 +52,13 @@ namespace pgm_sequence {
 
                 // std::vector<K> result1(index.n);
                 std::vector<K, HugePageAllocator<K>> result1(index.n);
-                if (warm_up) {
-                    for (int warm_time = 0; warm_time < 5; warm_time++) {
-                        for (int i = 0; i < index.n; i ++) {
-                            result1[i] = 0;
-                        }
-                    }
-                }
+                // if (warm_up) {
+                //     for (int warm_time = 0; warm_time < 5; warm_time++) {
+                //         for (int i = 0; i < index.n; i ++) {
+                //             result1[i] = 0;
+                //         }
+                //     }
+                // }
                 PerfEvent perf_event;
                 perf_event.startCounters();
                 index.simd_decode_512i(result1.data());

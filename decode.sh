@@ -40,7 +40,7 @@ do
   for epsilon in 1
   do
     echo "————————————dataset : $dataset epsilon: $epsilon————————————"
-    for decode_type in "normal"
+    for decode_type in "simd"
     do
       for repeat in 1 2 3
       do

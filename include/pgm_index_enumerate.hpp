@@ -37,10 +37,7 @@ namespace pgm_sequence {
         // 释放内存
         void deallocate(T* p, std::size_t n) noexcept {
             const size_t size = (n * sizeof(T) + PAGE_SIZE - 1) / PAGE_SIZE * PAGE_SIZE;
-            // const size_t size = n * sizeof(T);
-            if (munmap(p, size) == -1) {
-                std::cerr << "Failed to unmap huge pages: " << std::strerror(errno) << std::endl;
-            }
+            munmap(p, size);
         }
 
         // 比较操作符（必须定义）
@@ -243,6 +240,7 @@ namespace pgm_sequence {
         std::vector<Simd_Value*> slope_exponent_simd;
         std::vector<Intercept_Value*> intercept_simd;
         std::vector<Correction_Value*> corrections_simd;
+        // std::vector<Correction_Value*, HugePageAllocator<Correction_Value*>> corrections_simd;
         std::vector<Correction_Value> corrections_vector_residual;
         std::vector<Covered_Value*> first_simd;
         std::vector<Covered_Value*> covered_simd;
@@ -264,8 +262,30 @@ namespace pgm_sequence {
         }
 
         template <typename T>
-        void aligned_delete(T* ptr) {
+        static void aligned_delete(T* ptr) {
             std::free(ptr);
+        }
+
+        constexpr static size_t HUGE_PAGE_SIZE = 2 * 1024 * 1024;
+
+        template <typename T>
+        T* aligned_new_huge(uint64_t num_elements) {
+            const size_t size = (num_elements * sizeof(T) + HUGE_PAGE_SIZE - 1) / HUGE_PAGE_SIZE * HUGE_PAGE_SIZE;
+            void* ptr = mmap(nullptr, size,
+                             PROT_WRITE | PROT_READ,
+                             MAP_SHARED | MAP_ANONYMOUS | MAP_HUGETLB,
+                             -1, 0);
+            if (ptr == MAP_FAILED) {
+                cerr << "Failed to allocate huge pages: " << std::strerror(errno) << " " << size << " " << num_elements << std::endl;
+                throw std::bad_alloc();
+            }
+            return static_cast<T*>(ptr);
+        }
+
+        template <typename T>
+        static void aligned_delete_huge(T* p, std::size_t num_elements) noexcept {
+            const size_t size = (num_elements * sizeof(T) + HUGE_PAGE_SIZE - 1) / HUGE_PAGE_SIZE * HUGE_PAGE_SIZE;
+            munmap(p, size);
         }
 
         void free_memory(string simd_type = "simd") {
@@ -275,11 +295,13 @@ namespace pgm_sequence {
                     aligned_delete(slope_exponent_simd[i]);
                     aligned_delete(intercept_simd[i]);
                     aligned_delete(corrections_simd[i]);
+                    // aligned_delete_huge(corrections_simd[i], cover_length[i]);
                     aligned_delete(first_simd[i]);
                     aligned_delete(covered_simd[i]);
                 }
 
                 vector<Covered_Value> ().swap(cover_length);
+                // vector<Correction_Value*, HugePageAllocator<Correction_Value*>> ().swap(corrections_simd);
                 vector<Correction_Value*> ().swap(corrections_simd);
                 vector<Correction_Value> ().swap(corrections_vector_residual);
                 vector<Simd_Value*> ().swap(slope_significand_simd);
@@ -331,7 +353,6 @@ namespace pgm_sequence {
                 intercept_simd.emplace_back(intercept_simd_tmp);
                 first_simd.emplace_back(first_tmp);
                 covered_simd.emplace_back(covered_tmp);
-                // max_min_covered = min_cover;
                 max_min_covered = min_cover - min_cover % 2;
                 cover_length.emplace_back(max_min_covered);
             }
@@ -345,6 +366,7 @@ namespace pgm_sequence {
                 Covered_Value cover_length_tmp = cover_length[i];
                 Covered_Value *first_tmp = first_simd[i];
                 alignas(align_val) Correction_Value *corrections_simd_tmp = aligned_new<Correction_Value>(cover_length_tmp * key_nums);
+                // Correction_Value *corrections_simd_tmp = aligned_new_huge<Correction_Value>(cover_length_tmp * key_nums);
                 for (Covered_Value j = 0; j < cover_length_tmp; j++) {
                     for (Covered_Value k = 0; k < key_nums; k++) {
                         corrections_simd_tmp[j * key_nums + k] = corrections_vector[first_tmp[k] + j];
