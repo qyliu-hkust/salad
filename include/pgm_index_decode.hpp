@@ -52,13 +52,13 @@ namespace pgm_sequence {
 
                 // std::vector<K> result1(index.n);
                 std::vector<K, HugePageAllocator<K>> result1(index.n);
-                // if (warm_up) {
-                //     for (int warm_time = 0; warm_time < 5; warm_time++) {
-                //         for (int i = 0; i < index.n; i ++) {
-                //             result1[i] = 0;
-                //         }
-                //     }
-                // }
+                if (warm_up) {
+                    for (int warm_time = 0; warm_time < 5; warm_time++) {
+                        for (int i = 0; i < index.n; i ++) {
+                            result1[i] = 0;
+                        }
+                    }
+                }
                 PerfEvent perf_event;
                 perf_event.startCounters();
                 index.simd_decode_512i(result1.data());
@@ -100,8 +100,8 @@ namespace pgm_sequence {
                     min_decode_time1 = index.total_duration;
                 index.free_memory(decode_type);
             } else if (decode_type == "normal") {
-                std::vector<K, HugePageAllocator<K>> result2(index.n);
-                // std::vector<K> result2(index.n);
+                // std::vector<K, HugePageAllocator<K>> result2(index.n);
+                std::vector<K> result2(index.n);
                 if (warm_up) {
                     for (int warm_time = 0; warm_time < 5; warm_time++) {
                         for (int i = 0; i < index.n; i ++) {
@@ -122,8 +122,8 @@ namespace pgm_sequence {
                     perf_data[i].push_back(perf_data_tmp[i]);
                 }
 
-                std::vector<K, HugePageAllocator<K>> ().swap(result2);
-                // std::vector<K> ().swap(result2);
+                // std::vector<K, HugePageAllocator<K>> ().swap(result2);
+                std::vector<K> ().swap(result2);
                 size_tmp = index.n;
                 per_integer_time_tmp2 = index.total_duration;
                 per_integer_time_tmp2 /= size_tmp;

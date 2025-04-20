@@ -42,7 +42,7 @@ do
     echo "————————————dataset : $dataset epsilon: $epsilon————————————"
     for decode_type in "simd"
     do
-      for repeat in 1 2 3
+      for repeat in 1 2
       do
         mkdir -p $result_dir/index/$dataset/$index_type/$dataset-$index_type-$epsilon/
         $code_dir/pgm_decode $index_type $data_dir/$dataset/$dataset $result_dir/index/$dataset/$index_type/$dataset-$index_type-$epsilon/ $epsilon $read_only $decode_type $result_dir/log/$dataset/$index_type/$dataset-$index_type-$epsilon

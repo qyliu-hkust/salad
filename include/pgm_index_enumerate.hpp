@@ -239,8 +239,8 @@ namespace pgm_sequence {
         std::vector<Simd_Value*> slope_significand_simd;
         std::vector<Simd_Value*> slope_exponent_simd;
         std::vector<Intercept_Value*> intercept_simd;
-        std::vector<Correction_Value*> corrections_simd;
-        // std::vector<Correction_Value*, HugePageAllocator<Correction_Value*>> corrections_simd;
+        // std::vector<Correction_Value*> corrections_simd;
+        std::vector<Correction_Value, HugePageAllocator<Correction_Value>> corrections_simd;
         std::vector<Correction_Value> corrections_vector_residual;
         std::vector<Covered_Value*> first_simd;
         std::vector<Covered_Value*> covered_simd;
@@ -294,15 +294,15 @@ namespace pgm_sequence {
                     aligned_delete(slope_significand_simd[i]);
                     aligned_delete(slope_exponent_simd[i]);
                     aligned_delete(intercept_simd[i]);
-                    aligned_delete(corrections_simd[i]);
+                    // aligned_delete(corrections_simd[i]);
                     // aligned_delete_huge(corrections_simd[i], cover_length[i]);
                     aligned_delete(first_simd[i]);
                     aligned_delete(covered_simd[i]);
                 }
 
                 vector<Covered_Value> ().swap(cover_length);
-                // vector<Correction_Value*, HugePageAllocator<Correction_Value*>> ().swap(corrections_simd);
-                vector<Correction_Value*> ().swap(corrections_simd);
+                vector<Correction_Value, HugePageAllocator<Correction_Value>> ().swap(corrections_simd);
+                // vector<Correction_Value*> ().swap(corrections_simd);
                 vector<Correction_Value> ().swap(corrections_vector_residual);
                 vector<Simd_Value*> ().swap(slope_significand_simd);
                 vector<Simd_Value*> ().swap(slope_exponent_simd);
@@ -361,18 +361,20 @@ namespace pgm_sequence {
         }
 
         void create_corrections() {
-             corrections_simd.resize(cover_length.size(), 0);
+            total_calculated = 0;
+            for (int i = 0;i < cover_length.size(); i++) {
+                total_calculated += cover_length[i] * key_nums;
+            }
+            corrections_simd.resize(total_calculated, 0);
+            uint64_t corrections_pointer = 0;
             for (int i = 0;i < cover_length.size(); i++) {
                 Covered_Value cover_length_tmp = cover_length[i];
                 Covered_Value *first_tmp = first_simd[i];
-                alignas(align_val) Correction_Value *corrections_simd_tmp = aligned_new<Correction_Value>(cover_length_tmp * key_nums);
-                // Correction_Value *corrections_simd_tmp = aligned_new_huge<Correction_Value>(cover_length_tmp * key_nums);
                 for (Covered_Value j = 0; j < cover_length_tmp; j++) {
                     for (Covered_Value k = 0; k < key_nums; k++) {
-                        corrections_simd_tmp[j * key_nums + k] = corrections_vector[first_tmp[k] + j];
+                        corrections_simd[corrections_pointer++] = corrections_vector[first_tmp[k] + j];
                     }
                 }
-                corrections_simd[i] = corrections_simd_tmp;
             }
         }
 
@@ -424,10 +426,9 @@ namespace pgm_sequence {
             total_calculated = 0;
             total_calculated_add = 0;
             total_duration = 0;
-            // std::array<K*, key_nums> first_pointer;
             __m512i rerange_idx = _mm512_set_epi32(15, 7, 14, 6, 13, 5, 12, 4, 11, 3, 10, 2, 9, 1, 8, 0);
             alignas(align_val) Correction_Value *last_correction32 = aligned_new<Correction_Value>(8);
-
+            const Correction_Value *corrections_p = corrections_simd.data();
             auto start = std::chrono::high_resolution_clock::now();
             for (int i = 0; i < cover_length.size(); i++) { // the slope is int64_t, the corrections and intercept are int32_t, we should align them
                 Covered_Value  *first_tmp = first_simd[i];
@@ -442,7 +443,7 @@ namespace pgm_sequence {
 
                 // 0
                 __m256i intercept_v = _mm256_load_epi32(intercept_simd[i]);
-                Correction_Value *corrections_p = corrections_simd[i];
+
                 __m256i corrections_v = _mm256_load_epi32(corrections_p);
                 corrections_p += 8;
                 intercept_v = _mm256_add_epi32(intercept_v, corrections_v);
@@ -487,7 +488,7 @@ namespace pgm_sequence {
                 p7 = p7 + 2;
 
                 const Covered_Value cover_length_tmp = cover_length[i];
-                total_calculated += cover_length_tmp;
+                // total_calculated += cover_length_tmp;
 
                 for (Covered_Value j = 2; j < cover_length_tmp; j += 2) {
                     corrections_v = _mm256_load_epi32(corrections_p);
@@ -567,14 +568,9 @@ namespace pgm_sequence {
             auto end = std::chrono::high_resolution_clock::now();
             auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
             total_duration = duration.count();
-            total_calculated = total_calculated * 8;
         }
 
         // for compress residual
-        inline Correction_Value liner_spline(Correction_Value x1, Correction_Value x2) {
-            return (x1 + x2) >> 1;
-        }
-
         inline Correction_Value compare_max(Correction_Value x1, Correction_Value x2) {
             return x1 > x2 ? x1 : x2;
         }

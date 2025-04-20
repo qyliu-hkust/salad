@@ -8,6 +8,7 @@ add_compile_options(-mavx512vl)  # Add this line
 add_compile_options(-mavx512cd) # Add this line
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mbmi2")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w") # Disable all warnings
 set(CMAKE_CXX_STANDARD 17)
 
 set(FASTPFOR_LIB_PATH ${PROJECT_SOURCE_DIR}/external/FastPFor/build)
