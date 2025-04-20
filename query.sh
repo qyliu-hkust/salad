@@ -35,7 +35,7 @@ do
     do
       for epsilon in 1
       do
-        for decode_type in "normal" "simd"
+        for decode_type in "simd"
         do
           echo "————————————dataset : $dataset epsilon: $epsilon query_type: $query_type query_num: $query_num decode_type: $decode_type————————————"
           for repeat in 1 2

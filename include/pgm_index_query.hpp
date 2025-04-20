@@ -376,8 +376,9 @@ namespace pgm_sequence {
                     uint32_t candidate_posting_tmp = 0;
                     std::vector<K, HugePageAllocator<K>>  intercection_result(index_sequences[0].n + 1);
 
-                    // warm up the first list
+                    // warm up the first and second list
                     index_sequences[0].warm_up();
+                    index_sequences[1].warm_up();
 
                     auto start = std::chrono::high_resolution_clock::now();
                     if (query.size() == 2) {
@@ -476,6 +477,7 @@ namespace pgm_sequence {
 
                     // warm up the first list
                     index_sequences[0].warm_up();
+                    index_sequences[1].warm_up();
 
                     auto start = std::chrono::high_resolution_clock::now();
                     if (query.size() == 2) {
