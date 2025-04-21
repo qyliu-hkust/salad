@@ -55,22 +55,6 @@ namespace pgm_sequence {
             return idLists;
         }
 
-        // std::vector<std::vector<K>> ori_data;
-        // void load_orignal_data() {
-        //     mm::file_source<K> input("/mnt/home/xyzhu/datasets/cw12b-1M/cw12b-1M.docs", mm::advice::sequential);
-        //     K const* data = input.data();
-        //     assert(data[0] == 1);
-        //     std::cerr << "Universe Size: " << data[1] << std::endl;
-        //     for (size_t i = 2; i < input.size();){
-        //         uint64_t n = data[i];
-        //         std::vector<K> sequence(data + i + 1, data + i + n);
-        //         ori_data.push_back(sequence);
-        //         data_size += n;
-        //         i += n + 1;
-        //     }
-        //     input.close();
-        // }
-
         std::vector<pgm_enumerator<K>> load_model(std::vector<uint32_t> idx_list) {
             if (input_basename.back() != '/') {
                 std::cerr << "Error: output_basename must end with '/'" << std::endl;
@@ -329,27 +313,6 @@ namespace pgm_sequence {
             return c;
         }
 
-        // uint64_t union_u32_normal(const uint32_t *a, const uint32_t *b, size_t a_size, size_t b_size, uint32_t *out) {
-        //     const uint32_t *a_end = a + a_size;
-        //     const uint32_t *b_end = b + b_size;
-        //     uint32_t *out_end = out;
-        //     while (a != a_end && b != b_end) {
-        //         bool le = (*a <= *b);
-        //         bool ge = (*a >= *b);
-        //         *out_end = le ? *a : *b;
-        //         a += le;
-        //         b += ge;
-        //         out_end++;
-        //     }
-        //     // cerr << "Debug 1" << endl;
-        //     std::memcpy(out_end, a, (a_end - a) * sizeof(uint32_t));
-        //     out_end += a_end - a;
-        //     std::memcpy(out_end, b, (b_end - b) * sizeof(uint32_t));
-        //     out_end += b_end - b;
-        //     return out_end - out;
-        // }
-
-
         long double avg_skip = 0;
         long double avg_query_total_size = 0;
         long double avg_query_real_size = 0;
@@ -375,9 +338,14 @@ namespace pgm_sequence {
                     uint32_t equal_result = 0;
                     uint32_t candidate_posting_tmp = 0;
                     int intersection_size = query.size() == 2 ? index_sequences[1].n + 1 : index_sequences[2].n + 1;
-                    std::vector<K, HugePageAllocator<K>> intersection_result_1(intersection_size);
-                    std::vector<K, HugePageAllocator<K>> intersection_result_2(intersection_size);
-                    K *intersection_result_p1 = intersection_result_1.data(), *intersection_result_p2 = intersection_result_2.data();
+
+                    K *intersection_result_p1, *intersection_result_p2;
+                    // std::vector<K, HugePageAllocator<K>> intersection_result_1(intersection_size); // for simd
+                    // std::vector<K, HugePageAllocator<K>> intersection_result_2(intersection_size);
+                    std::vector<K> intersection_result_1(intersection_size); // for normal
+                    std::vector<K> intersection_result_2(intersection_size);
+                    intersection_result_p1 = intersection_result_1.data();
+                    intersection_result_p2 = intersection_result_2.data();
 
                     // warm up
                     for (auto k = 0; k < 5; k++) {
@@ -386,31 +354,18 @@ namespace pgm_sequence {
                         for (auto i = 0;i < intersection_size; i++)
                             intersection_result_p1[i] = 0;
                     }
-                    // index_sequences[1].warm_up();
-                    // index_sequences[0].warm_up();
-
 
                     auto start = std::chrono::high_resolution_clock::now();
                     if (query.size() == 2) {
-                        // for (auto &enumerator : index_sequences) {
-                        //     // enumerator.decode_query(decode_type);
-                        // }
-                        index_sequences[0].simd_decode_512i(intersection_result_p1);
-                        index_sequences[1].simd_decode_512i(intersection_result_p2);
-                        // equal_result = intersect_u32_simd(index_sequences[0].current_value_vector.data(), index_sequences[1].current_value_vector.data(), index_sequences[0].n, index_sequences[1].n, intercection_result.data());
+                        index_sequences[0].decode_query(intersection_result_p1, decode_type);
+                        index_sequences[1].decode_query(intersection_result_p2, decode_type);
                         equal_result = intersect_u32_simd(intersection_result_p1, intersection_result_p2, index_sequences[0].n,  index_sequences[1].n, intersection_result_p1);
                     } else {
-                        // for (int i = 0; i < 2; i++) {
-                            // index_sequences[i].decode_query(decode_type);
-                        // }
-                        // equal_result = intersect_u32_simd(index_sequences[0].current_value_vector.data(), index_sequences[1].current_value_vector.data(), index_sequences[0].n, index_sequences[1].n, intercection_result.data());
-
-                        index_sequences[0].simd_decode_512i(intersection_result_p1);
-                        index_sequences[1].simd_decode_512i(intersection_result_p2);
+                        index_sequences[0].decode_query(intersection_result_p1, decode_type);
+                        index_sequences[1].decode_query(intersection_result_p2, decode_type);
                         equal_result = intersect_u32_simd(intersection_result_p1, intersection_result_p2, index_sequences[0].n, index_sequences[1].n, intersection_result_p1);
 
-                        index_sequences[2].simd_decode_512i(intersection_result_p2);
-                        // equal_result = intersect_u32_simd(intercection_result.data(), index_sequences[2].current_value_vector.data(), equal_result, index_sequences[2].n, intercection_result.data());
+                        index_sequences[2].decode_query(intersection_result_p2, decode_type);
                         equal_result = intersect_u32_simd(intersection_result_p1, intersection_result_p2, equal_result, index_sequences[2].n, intersection_result_p1);
 
                         if (index_sequences.size() > branch_num) {
@@ -438,7 +393,6 @@ namespace pgm_sequence {
 
                     if (repeat == 0) {
                         total += equal_result;
-
                         long double skip_tmp = 0;
                         long double size_tmp = 0;
                         for (int i = 0; i < index_sequences.size(); i++) {
@@ -485,11 +439,16 @@ namespace pgm_sequence {
                     }
 
                     uint64_t equal_result = 0;
-                    std::vector<K, HugePageAllocator<K>>  union_result_1(union_list_size);
-                    std::vector<K, HugePageAllocator<K>>  union_result_2(union_size);
-                    std::vector<K, HugePageAllocator<K>>  union_result_3(union_size);
-
-                    K *union_result_p1 = union_result_1.data(), *union_result_p2 = union_result_2.data(), *union_result_p3 = union_result_3.data();
+                    K *union_result_p1, *union_result_p2, *union_result_p3;
+                    // std::vector<K, HugePageAllocator<K>>  union_result_1(union_list_size); // for simd
+                    // std::vector<K, HugePageAllocator<K>>  union_result_2(union_size);
+                    // std::vector<K, HugePageAllocator<K>>  union_result_3(union_size);
+                    std::vector<K> union_result_1(union_list_size); // for normal
+                    std::vector<K> union_result_2(union_size);
+                    std::vector<K> union_result_3(union_size);
+                    union_result_p1 = union_result_1.data();
+                    union_result_p2 = union_result_2.data();
+                    union_result_p3 = union_result_3.data();
 
                     // warm up
                     for (auto k = 0; k < 5; k++) {
@@ -503,40 +462,21 @@ namespace pgm_sequence {
 
                     auto start = std::chrono::high_resolution_clock::now();
                     if (query.size() == 2) {
-                        // for (auto &enumerator : index_sequences) {
-                        //     enumerator.decode_query(decode_type);
-                        // }
-                        // equal_result = union_u32_normal(index_sequences[0].current_value_vector.data(), index_sequences[1].current_value_vector.data(), index_sequences[0].n, index_sequences[1].n, union_result_p1);
-                        // equal_result = union_u32_simd(index_sequences[0].current_value_vector.data(), index_sequences[1].current_value_vector.data(), index_sequences[0].n, index_sequences[1].n, union_result_p1);
-
-                        // end_union_result = std::set_union(index_sequences[0].current_value_vector.data(), index_sequences[0].current_value_vector.data()+index_sequences[0].n, index_sequences[1].current_value_vector.data(), index_sequences[1].current_value_vector.data()+index_sequences[1].n, start_union_result);
-                        // equal_result = end_union_result - start_union_result;
-                        index_sequences[0].simd_decode_512i(union_result_p1);
-                        index_sequences[1].simd_decode_512i(union_result_p2);
+                        index_sequences[0].decode_query(union_result_p1, decode_type);
+                        index_sequences[1].decode_query(union_result_p2, decode_type);
                         equal_result = union_u32_simd(union_result_p1, union_result_p2, index_sequences[0].n, index_sequences[1].n, union_result_p3);
                     } else {
-                        // for (int i = 0; i < 2; i++) {
-                            // index_sequences[i].decode_query(decode_type);
-                        // }
-                        // equal_result = union_u32_normal(index_sequences[0].current_value_vector.data(), index_sequences[1].current_value_vector.data(), index_sequences[0].n, index_sequences[1].n, union_result_p1);
-                        // equal_result = union_u32_simd(index_sequences[0].current_value_vector.data(), index_sequences[1].current_value_vector.data(), index_sequences[0].n, index_sequences[1].n, union_result_p1);
-
-                        // end_union_result = std::set_union(index_sequences[0].current_value_vector.data(), index_sequences[0].current_value_vector.data()+index_sequences[0].n, index_sequences[1].current_value_vector.data(), index_sequences[1].current_value_vector.data()+index_sequences[1].n, start_union_result);
-                        // equal_result = end_union_result - start_union_result;
-                        index_sequences[0].simd_decode_512i(union_result_p1);
-                        index_sequences[1].simd_decode_512i(union_result_p2);
+                        index_sequences[0].decode_query(union_result_p1, decode_type);
+                        index_sequences[1].decode_query(union_result_p2, decode_type);
                         equal_result = union_u32_simd(union_result_p1, union_result_p2, index_sequences[0].n, index_sequences[1].n, union_result_p3);
 
                         for (int i = 2; i < query.size(); i++) {
-                            index_sequences[i].simd_decode_512i(union_result_p1);
-                            // index_sequences[i].decode_query(decode_type);
-                            // equal_result = union_u32_normal(union_result_p1, index_sequences[i].current_value_vector.data(), equal_result, index_sequences[i].n, union_result_p2);
+                            index_sequences[i].decode_query(union_result_p1, decode_type);
                             equal_result = union_u32_simd(union_result_p3, union_result_p1, equal_result, index_sequences[i].n, union_result_p2);
                             K *union_result_tmp = union_result_p2;
                             union_result_p2 = union_result_p3;
                             union_result_p3 = union_result_tmp;
                             // end_union_result = std::set_union(start_union_result, start_union_result + equal_result, index_sequences[i].current_value_vector.data(), index_sequences[i].current_value_vector.data()+index_sequences[i].n, start_union_result);
-                            // equal_result = end_union_result - start_union_result;
                         }
                     }
                     auto end = std::chrono::high_resolution_clock::now();

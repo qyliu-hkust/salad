@@ -115,13 +115,13 @@ namespace pgm_sequence {
                     current_pos = 0;
                     current_segment = 0;
                     total_skip = 0;
-                    current_value_vector.resize(n);
+                    // current_value_vector.resize(n);
                 } else if (query_type == "union") {
                     current_pos = 0;
                     current_segment = 0;
                     current_value = INT_MAX - 1;
                     total_skip = 0;
-                    current_value_vector.resize(n);
+                    // current_value_vector.resize(n);
                 }
             } else if (decode_type == "simd") {
                 current_pos = 0;
@@ -133,11 +133,12 @@ namespace pgm_sequence {
             }
         }
 
-        void decode_query(const std::string decode_type) {
+        void decode_query(K* output, const std::string decode_type) {
+            // cerr << "Debug" << endl;
             if (decode_type == "normal") {
-                normal_decode(current_value_vector.data());
+                normal_decode(output);
             } else if (decode_type == "simd") {
-                simd_decode_512i(current_value_vector.data());
+                simd_decode_512i(output);
             }
         }
 
