@@ -126,7 +126,7 @@ namespace pgm_sequence {
             } else if (decode_type == "simd") {
                 current_pos = 0;
                 current_segment = 0;
-                current_value_vector.resize(n);
+                // current_value_vector.resize(n);
                 simd_init();
                 vector<Correction_Value> ().swap(corrections_vector);
                 vector<segment> ().swap(segments);
